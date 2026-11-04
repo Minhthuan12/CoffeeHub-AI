@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoffeeHub - Màn hình 5: Quản lý Kho & Dự báo Tiêu thụ Tự động bằng AI</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- TOP APP BAR -->
+  <header class="bg-amber-950 text-amber-50 px-5 py-3 border-b border-amber-900 sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="../index.html" class="flex items-center gap-2 bg-amber-900/80 hover:bg-amber-800 text-amber-200 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-all">
+          <i class="fa-solid fa-arrow-left"></i> Về Hub chính
+        </a>
+        <div class="h-4 w-px bg-amber-800"></div>
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-boxes-stacked text-amber-400"></i>
+          <span class="font-bold text-sm tracking-tight">Màn hình 5: Quản lý Kho & Dự báo Tiêu thụ Tự động bằng AI</span>
+        </div>
+      </div>
+
+      <!-- Quick switcher -->
+      <div class="flex items-center gap-2 text-xs">
+        <span class="text-amber-400 font-medium hidden sm:inline">Chuyển màn hình:</span>
+        <select onchange="if(this.value) window.location.href=this.value" class="bg-amber-900/90 text-amber-100 text-xs px-2.5 py-1.5 rounded-lg border border-amber-800 focus:outline-none">
+          <option value="01-customer-menu.html" >MH 1:  Mobile Web QR Menu & Trợ lý AI Barista tại bàn</option>
+          <option value="02-pos-cashier.html" >MH 2:  POS Thu ngân 2 Màn hình & Bán tại quầy</option>
+          <option value="03-barista-kds.html" >MH 3:  KDS Quầy Barista Realtime (< 0.2s)</option>
+          <option value="04-bom-recipes.html" >MH 4:  Cấu hình Định lượng Nguyên liệu (BOM)</option>
+          <option value="05-inventory-ai.html" selected>MH 5:  Quản lý Kho & Dự báo Tiêu thụ Tự động bằng AI</option>
+          <option value="06-manager-report.html" >MH 6:  Báo cáo Doanh thu & Trợ lý Điều hành AI Copilot</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <!-- SCREEN CONTENT -->
+  <main class="flex-1 p-4 md:p-6 flex justify-center">
+    <section id="screen-5" class="screen-view block">
+      <div class="mb-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">Màn hình 5 • Quản Lý Kho & Thủ Kho</span>
+          <h2 class="text-lg font-bold text-slate-800 mt-1">Quản Lý Tồn Kho & Dự Báo Tiêu Thụ Tự Động Bằng AI</h2>
+          <p class="text-xs text-slate-500">Giám sát lượng nguyên vật liệu tức thời và xem dự báo nhu cầu nhập hàng tự động từ mô hình AI.</p>
+        </div>
+        <button class="bg-amber-900 hover:bg-amber-800 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-2 shadow-sm">
+          <i class="fa-solid fa-file-invoice"></i> + Tạo Phiếu Nhập Hàng
+        </button>
+      </div>
+
+      <!-- INVENTORY AI INTELLIGENCE DASHBOARD -->
+      <div class="space-y-4">
+        <!-- AI Predictive Banner (Điểm nhấn AI Kho) -->
+        <div class="bg-gradient-to-r from-purple-900 via-indigo-900 to-slate-900 text-white p-4 rounded-2xl shadow-md border border-purple-400/30 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+          <div class="flex items-start gap-3">
+            <div class="w-12 h-12 rounded-xl bg-purple-500/20 border border-purple-400/40 flex items-center justify-center text-purple-300 text-xl font-bold shrink-0">
+              <i class="fa-solid fa-brain"></i>
+            </div>
+            <div>
+              <div class="flex items-center gap-2">
+                <h4 class="font-bold text-sm text-purple-200">AI Dự Báo Nhu Cầu & Tồn Kho (3 Ngày Tới)</h4>
+                <span class="text-[10px] bg-emerald-500/30 text-emerald-300 border border-emerald-400/30 font-bold px-2 py-0.5 rounded-full">Độ chính xác: 94.2%</span>
+              </div>
+              <p class="text-xs text-purple-200/80 mt-1">
+                Cuối tuần này (Thứ 7 & CN) dự báo lượng khách tăng <strong>38%</strong> do thời tiết nắng đẹp tại Đà Nẵng. Nguyên liệu <strong>Sữa tươi Thanh trùng</strong> và <strong>Cà phê Robusta</strong> có nguy cơ cạn kiệt vào chiều Thứ 7 nếu không nhập thêm!
+              </p>
+            </div>
+          </div>
+          <button class="bg-purple-500 hover:bg-purple-400 text-slate-950 font-extrabold text-xs px-4 py-2 rounded-xl shadow whitespace-nowrap transition">
+            <i class="fa-solid fa-cart-flatbed"></i> Nhập theo đề xuất AI
+          </button>
+        </div>
+
+        <!-- Inventory Status Table -->
+        <div class="bg-white rounded-2xl border border-slate-200 overflow-hidden shadow-sm">
+          <div class="p-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+            <h4 class="font-bold text-xs uppercase tracking-wider text-slate-700">Trạng thái kho nguyên vật liệu</h4>
+            <div class="flex gap-2">
+              <span class="text-xs bg-rose-50 text-rose-700 border border-rose-200 px-2 py-0.5 rounded-md font-bold">2 Cảnh báo hết hàng</span>
+              <span class="text-xs bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-md font-bold">14 An toàn</span>
+            </div>
+          </div>
+
+          <table class="w-full text-left text-xs">
+            <thead class="bg-slate-100/70 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px]">
+              <tr>
+                <th class="p-3">Nguyên Vật Liệu</th>
+                <th class="p-3">Tồn kho hiện tại</th>
+                <th class="p-3">Ngưỡng tối thiểu</th>
+                <th class="p-3">AI Dự báo dùng (3 ngày)</th>
+                <th class="p-3 text-center">Trạng thái</th>
+                <th class="p-3 text-right">Đề xuất nhập</th>
+              </tr>
+            </thead>
+            <tbody class="divide-y divide-slate-100 font-medium text-slate-700">
+              <tr class="bg-rose-50/40">
+                <td class="p-3 font-bold text-slate-900">Sữa tươi thanh trùng Dalat Milk</td>
+                <td class="p-3 text-rose-700 font-extrabold">4.5 Lít</td>
+                <td class="p-3">10.0 Lít</td>
+                <td class="p-3 text-purple-700 font-bold">28.0 Lít</td>
+                <td class="p-3 text-center">
+                  <span class="px-2 py-0.5 bg-rose-500 text-white rounded text-[10px] font-bold animate-pulse">Sắp hết hàng</span>
+                </td>
+                <td class="p-3 text-right font-black text-rose-700">+ 30 Lít (3 thùng)</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-slate-900">Cà phê hạt Robusta Buôn Ma Thuột</td>
+                <td class="p-3 font-bold text-amber-900">6.2 kg</td>
+                <td class="p-3">5.0 kg</td>
+                <td class="p-3 text-purple-700 font-bold">15.4 kg</td>
+                <td class="p-3 text-center">
+                  <span class="px-2 py-0.5 bg-amber-100 text-amber-800 rounded text-[10px] font-bold">Chạm ngưỡng</span>
+                </td>
+                <td class="p-3 text-right font-black text-amber-900">+ 15 kg</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-slate-900">Sữa đặc có đường Phương Nam</td>
+                <td class="p-3 font-bold text-slate-800">18 Hộp</td>
+                <td class="p-3">8 Hộp</td>
+                <td class="p-3 text-purple-700 font-bold">12 Hộp</td>
+                <td class="p-3 text-center">
+                  <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[10px] font-bold">An toàn</span>
+                </td>
+                <td class="p-3 text-right text-slate-400">Chưa cần nhập</td>
+              </tr>
+              <tr>
+                <td class="p-3 font-bold text-slate-900">Siro Đào Monin (Chai 700ml)</td>
+                <td class="p-3 font-bold text-slate-800">3 Chai</td>
+                <td class="p-3">1 Chai</td>
+                <td class="p-3 text-purple-700 font-bold">1.8 Chai</td>
+                <td class="p-3 text-center">
+                  <span class="px-2 py-0.5 bg-emerald-100 text-emerald-800 rounded text-[10px] font-bold">An toàn</span>
+                </td>
+                <td class="p-3 text-right text-slate-400">Chưa cần nhập</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/websocket.js"></script>
+  <script src="../assets/js/app.js"></script>
+  <script>
+    function triggerAIChat(promptText) {
+      const box = document.getElementById('ai-chat-preview');
+      if (box) {
+        box.innerHTML = `
+          <div class="flex items-start gap-2">
+            <span class="text-amber-400 font-bold shrink-0"><i class="fa-solid fa-sparkles animate-spin"></i> AI:</span>
+            <p class="text-amber-100 text-[11.5px] leading-relaxed">
+              Bạn đang hỏi: "<em>${promptText}</em>"<br>
+              <strong>Gợi ý ngay:</strong> 1x Cà phê muối kem béo (ít ngọt) + 1x Bánh Croissant bơ tỏi nướng giòn. Đã có sẵn nút thêm nhanh bên dưới!
+            </p>
+          </div>
+          <div class="pt-1.5 border-t border-amber-800/60 flex items-center justify-between">
+            <span class="text-[11px] text-emerald-300 font-semibold">Khớp 99% khẩu vị yêu cầu</span>
+            <button class="bg-amber-400 hover:bg-amber-300 text-amber-950 font-bold text-[11px] px-2.5 py-1 rounded-lg shadow">
+              + Thêm combo này (55k)
+            </button>
+          </div>
+        `;
+      }
+    }
+  </script>
+</body>
+</html>

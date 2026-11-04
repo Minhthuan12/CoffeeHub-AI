@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoffeeHub - Màn hình 2: POS Thu ngân 2 Màn hình & Bán tại quầy</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- TOP APP BAR -->
+  <header class="bg-amber-950 text-amber-50 px-5 py-3 border-b border-amber-900 sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="../index.html" class="flex items-center gap-2 bg-amber-900/80 hover:bg-amber-800 text-amber-200 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-all">
+          <i class="fa-solid fa-arrow-left"></i> Về Hub chính
+        </a>
+        <div class="h-4 w-px bg-amber-800"></div>
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-cash-register text-amber-400"></i>
+          <span class="font-bold text-sm tracking-tight">Màn hình 2: POS Thu ngân 2 Màn hình & Bán tại quầy</span>
+        </div>
+      </div>
+
+      <!-- Quick switcher -->
+      <div class="flex items-center gap-2 text-xs">
+        <span class="text-amber-400 font-medium hidden sm:inline">Chuyển màn hình:</span>
+        <select onchange="if(this.value) window.location.href=this.value" class="bg-amber-900/90 text-amber-100 text-xs px-2.5 py-1.5 rounded-lg border border-amber-800 focus:outline-none">
+          <option value="01-customer-menu.html" >MH 1:  Mobile Web QR Menu & Trợ lý AI Barista tại bàn</option>
+          <option value="02-pos-cashier.html" selected>MH 2:  POS Thu ngân 2 Màn hình & Bán tại quầy</option>
+          <option value="03-barista-kds.html" >MH 3:  KDS Quầy Barista Realtime (< 0.2s)</option>
+          <option value="04-bom-recipes.html" >MH 4:  Cấu hình Định lượng Nguyên liệu (BOM)</option>
+          <option value="05-inventory-ai.html" >MH 5:  Quản lý Kho & Dự báo Tiêu thụ Tự động bằng AI</option>
+          <option value="06-manager-report.html" >MH 6:  Báo cáo Doanh thu & Trợ lý Điều hành AI Copilot</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <!-- SCREEN CONTENT -->
+  <main class="flex-1 p-4 md:p-6 flex justify-center">
+    <section id="screen-2" class="screen-view block">
+      <div class="mb-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">Màn hình 2 • Thu Ngân (Desktop/Tablet)</span>
+          <h2 class="text-lg font-bold text-slate-800 mt-1">Màn Hình Bán Hàng Tại Quầy POS & AI Smart Upsell</h2>
+          <p class="text-xs text-slate-500">Quản lý sơ đồ bàn, thao tác gọi món nhanh và nhận gợi ý bán kèm từ AI theo thời gian thực.</p>
+        </div>
+        <div class="text-xs bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 font-semibold text-slate-700">
+          Ca sáng: <strong>Thu ngân Nguyễn Lan</strong>
+        </div>
+      </div>
+
+      <!-- POS MAIN 3-COLUMN LAYOUT -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 h-[720px] bg-slate-900 p-3 rounded-2xl border border-slate-800 shadow-2xl overflow-hidden text-slate-100">
+        
+        <!-- LEFT COL: TABLES & AREAS (3 cols) -->
+        <div class="lg:col-span-3 bg-slate-800/90 rounded-xl p-3 flex flex-col border border-slate-700/60">
+          <div class="flex items-center justify-between pb-2 border-b border-slate-700">
+            <h4 class="font-bold text-xs uppercase tracking-wider text-amber-400"><i class="fa-solid fa-table-cells"></i> Sơ đồ bàn</h4>
+            <div class="flex gap-1 text-[11px]">
+              <span class="px-2 py-0.5 bg-emerald-500/20 text-emerald-400 rounded border border-emerald-500/30 font-semibold">Trống: 8</span>
+              <span class="px-2 py-0.5 bg-rose-500/20 text-rose-400 rounded border border-rose-500/30 font-semibold">Khách: 6</span>
+            </div>
+          </div>
+
+          <!-- Table Tabs -->
+          <div class="flex gap-1.5 py-2 text-xs">
+            <button class="px-2.5 py-1 bg-amber-600 text-white rounded font-medium text-[11px]">Tất cả</button>
+            <button class="px-2.5 py-1 bg-slate-700 text-slate-300 rounded font-medium text-[11px]">Tầng 1</button>
+            <button class="px-2.5 py-1 bg-slate-700 text-slate-300 rounded font-medium text-[11px]">Tầng 2</button>
+            <button class="px-2.5 py-1 bg-slate-700 text-slate-300 rounded font-medium text-[11px]">Sân vườn</button>
+          </div>
+
+          <!-- Grid of Tables -->
+          <div class="grid grid-cols-3 gap-2 overflow-y-auto flex-1 custom-scrollbar pr-1 pt-1">
+            <div class="bg-rose-900/40 border-2 border-rose-500 p-2.5 rounded-lg flex flex-col items-center justify-center text-center cursor-pointer relative shadow-sm">
+              <span class="font-extrabold text-sm text-white">Bàn 01</span>
+              <span class="text-[10px] text-rose-300 font-semibold">3 món • 105k</span>
+              <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-rose-500"></span>
+            </div>
+
+            <div class="bg-slate-700/50 border border-slate-600 p-2.5 rounded-lg flex flex-col items-center justify-center text-center cursor-pointer hover:border-amber-400">
+              <span class="font-bold text-sm text-slate-200">Bàn 02</span>
+              <span class="text-[10px] text-slate-400">Trống</span>
+            </div>
+
+            <div class="bg-amber-600/30 border-2 border-amber-400 p-2.5 rounded-lg flex flex-col items-center justify-center text-center cursor-pointer relative shadow-md">
+              <span class="font-extrabold text-sm text-amber-200">Bàn 04</span>
+              <span class="text-[10px] text-amber-300 font-semibold">Đang chọn</span>
+              <span class="absolute top-1 right-1 w-2 h-2 rounded-full bg-amber-400 animate-ping"></span>
+            </div>
+
+            <div class="bg-slate-700/50 border border-slate-600 p-2.5 rounded-lg flex flex-col items-center justify-center text-center cursor-pointer hover:border-amber-400">
+              <span class="font-bold text-sm text-slate-200">Bàn 05</span>
+              <span class="text-[10px] text-slate-400">Trống</span>
+            </div>
+
+            <div class="bg-rose-900/40 border border-rose-500/80 p-2.5 rounded-lg flex flex-col items-center justify-center text-center cursor-pointer">
+              <span class="font-bold text-sm text-white">Bàn 06</span>
+              <span class="text-[10px] text-rose-300">2 món • 70k</span>
+            </div>
+
+            <div class="bg-blue-900/40 border border-blue-500/80 p-2.5 rounded-lg flex flex-col items-center justify-center text-center cursor-pointer">
+              <span class="font-bold text-sm text-blue-200">Mang Về 1</span>
+              <span class="text-[10px] text-blue-300">Chờ pha</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- MIDDLE COL: PRODUCT CATALOG (5 cols) -->
+        <div class="lg:col-span-5 bg-slate-800/90 rounded-xl p-3 flex flex-col border border-slate-700/60">
+          <div class="flex items-center gap-2 pb-2">
+            <div class="relative flex-1">
+              <i class="fa-solid fa-search absolute left-3 top-2.5 text-xs text-slate-400"></i>
+              <input type="text" placeholder="Tìm tên món, mã SKU..." class="w-full bg-slate-900 border border-slate-700 rounded-lg pl-8 pr-3 py-1.5 text-xs text-slate-200 focus:outline-none focus:border-amber-500">
+            </div>
+            <button class="bg-slate-700 hover:bg-slate-600 px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-200">
+              <i class="fa-solid fa-barcode"></i> Quét
+            </button>
+          </div>
+
+          <!-- Product Grid -->
+          <div class="grid grid-cols-3 gap-2 overflow-y-auto flex-1 custom-scrollbar pr-1 pt-1">
+            <div class="bg-slate-900/80 border border-slate-700/80 hover:border-amber-400 p-2 rounded-xl cursor-pointer transition flex flex-col justify-between">
+              <div class="w-full h-16 bg-amber-950/60 rounded-lg flex items-center justify-center text-amber-400 text-2xl font-bold">
+                <i class="fa-solid fa-mug-saucer"></i>
+              </div>
+              <div class="mt-1.5">
+                <span class="font-bold text-xs text-slate-200 block truncate">Cà phê muối kem béo</span>
+                <span class="font-extrabold text-xs text-amber-400">35.000đ</span>
+              </div>
+            </div>
+
+            <div class="bg-slate-900/80 border border-slate-700/80 hover:border-amber-400 p-2 rounded-xl cursor-pointer transition flex flex-col justify-between">
+              <div class="w-full h-16 bg-amber-950/60 rounded-lg flex items-center justify-center text-amber-500 text-2xl font-bold">
+                <i class="fa-solid fa-coffee"></i>
+              </div>
+              <div class="mt-1.5">
+                <span class="font-bold text-xs text-slate-200 block truncate">Bạc xỉu 3 tầng</span>
+                <span class="font-extrabold text-xs text-amber-400">32.000đ</span>
+              </div>
+            </div>
+
+            <div class="bg-slate-900/80 border border-slate-700/80 hover:border-amber-400 p-2 rounded-xl cursor-pointer transition flex flex-col justify-between">
+              <div class="w-full h-16 bg-orange-950/60 rounded-lg flex items-center justify-center text-orange-400 text-2xl font-bold">
+                <i class="fa-solid fa-glass-water"></i>
+              </div>
+              <div class="mt-1.5">
+                <span class="font-bold text-xs text-slate-200 block truncate">Trà đào cam sả</span>
+                <span class="font-extrabold text-xs text-amber-400">39.000đ</span>
+              </div>
+            </div>
+
+            <div class="bg-slate-900/80 border border-slate-700/80 hover:border-amber-400 p-2 rounded-xl cursor-pointer transition flex flex-col justify-between">
+              <div class="w-full h-16 bg-emerald-950/60 rounded-lg flex items-center justify-center text-emerald-400 text-2xl font-bold">
+                <i class="fa-solid fa-leaf"></i>
+              </div>
+              <div class="mt-1.5">
+                <span class="font-bold text-xs text-slate-200 block truncate">Matcha Latte Nhật</span>
+                <span class="font-extrabold text-xs text-amber-400">45.000đ</span>
+              </div>
+            </div>
+
+            <div class="bg-slate-900/80 border border-slate-700/80 hover:border-amber-400 p-2 rounded-xl cursor-pointer transition flex flex-col justify-between">
+              <div class="w-full h-16 bg-amber-950/60 rounded-lg flex items-center justify-center text-amber-300 text-2xl font-bold">
+                <i class="fa-solid fa-bread-slice"></i>
+              </div>
+              <div class="mt-1.5">
+                <span class="font-bold text-xs text-slate-200 block truncate">Croissant bơ tỏi</span>
+                <span class="font-extrabold text-xs text-amber-400">28.000đ</span>
+              </div>
+            </div>
+
+            <div class="bg-slate-900/80 border border-slate-700/80 hover:border-amber-400 p-2 rounded-xl cursor-pointer transition flex flex-col justify-between">
+              <div class="w-full h-16 bg-amber-950/60 rounded-lg flex items-center justify-center text-amber-200 text-2xl font-bold">
+                <i class="fa-solid fa-cake-candles"></i>
+              </div>
+              <div class="mt-1.5">
+                <span class="font-bold text-xs text-slate-200 block truncate">Tiramisu Cacao</span>
+                <span class="font-extrabold text-xs text-amber-400">35.000đ</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT COL: ORDER TICKET & AI UPSELL (4 cols) -->
+        <div class="lg:col-span-4 bg-slate-800 rounded-xl p-3 flex flex-col border border-slate-700 justify-between">
+          <div>
+            <!-- Order Header -->
+            <div class="flex items-center justify-between pb-2 border-b border-slate-700">
+              <div>
+                <span class="text-xs text-amber-400 font-bold">ĐƠN HÀNG #104</span>
+                <h4 class="font-extrabold text-sm text-white">Bàn 04 (4 khách)</h4>
+              </div>
+              <span class="text-xs bg-slate-700 text-slate-300 px-2 py-0.5 rounded">09:42</span>
+            </div>
+
+            <!-- Order Lines List -->
+            <div class="divide-y divide-slate-700/70 max-h-48 overflow-y-auto custom-scrollbar my-2">
+              <div class="py-1.5 flex items-start justify-between text-xs">
+                <div>
+                  <span class="font-bold text-white">1x Cà phê muối</span>
+                  <span class="block text-[11px] text-slate-400">Size L, 50% Đường, 70% Đá</span>
+                </div>
+                <span class="font-bold text-amber-400">40.000đ</span>
+              </div>
+              <div class="py-1.5 flex items-start justify-between text-xs">
+                <div>
+                  <span class="font-bold text-white">1x Trà đào cam sả</span>
+                  <span class="block text-[11px] text-slate-400">Size M, Thêm hạt chia (+5k)</span>
+                </div>
+                <span class="font-bold text-amber-400">44.000đ</span>
+              </div>
+            </div>
+
+            <!-- AI SMART UPSELL WIDGET (Điểm nhấn AI tại quầy) -->
+            <div class="bg-gradient-to-r from-amber-900/60 to-purple-950/60 border border-amber-500/40 rounded-xl p-2.5 my-2">
+              <div class="flex items-center justify-between text-[11px] font-bold text-amber-300">
+                <span class="flex items-center gap-1.5">
+                  <i class="fa-solid fa-wand-magic-sparkles text-amber-400"></i> AI Gợi ý bán kèm (Upsell)
+                </span>
+                <span class="text-[10px] bg-amber-400/20 text-amber-300 px-1.5 py-0.5 rounded">Khuyên dùng</span>
+              </div>
+              <p class="text-[11px] text-slate-200 mt-1">
+                Gợi ý thu ngân: <em>"Mời khách dùng thêm <strong>Croissant bơ tỏi</strong> giá ưu đãi 20k (giảm 8k khi mua cùng Cà phê muối)!"</em>
+              </p>
+              <button class="w-full mt-2 bg-amber-500/30 hover:bg-amber-500/40 text-amber-300 border border-amber-400/50 text-xs font-semibold py-1 rounded-lg transition flex items-center justify-center gap-1">
+                <i class="fa-solid fa-plus text-[10px]"></i> Thêm Croissant bơ tỏi (+20.000đ)
+              </button>
+            </div>
+          </div>
+
+          <!-- Total Calculation & Action Buttons -->
+          <div class="pt-2 border-t border-slate-700 space-y-1.5">
+            <div class="flex justify-between text-xs text-slate-400">
+              <span>Tạm tính:</span>
+              <span>84.000đ</span>
+            </div>
+            <div class="flex justify-between text-xs text-emerald-400">
+              <span>Voucher Hội viên:</span>
+              <span>-10.000đ</span>
+            </div>
+            <div class="flex justify-between text-sm font-extrabold text-white pt-1 border-t border-slate-700/60">
+              <span>TỔNG CỘNG:</span>
+              <span class="text-amber-400 text-base">74.000đ</span>
+            </div>
+
+            <!-- Quick Action Buttons -->
+            <div class="grid grid-cols-2 gap-2 pt-2">
+              <button class="bg-slate-700 hover:bg-slate-600 text-white font-bold py-2 rounded-xl text-xs flex items-center justify-center gap-1.5">
+                <i class="fa-solid fa-print"></i> In Tạm Tính
+              </button>
+              <button class="bg-amber-600 hover:bg-amber-500 text-white font-extrabold py-2 rounded-xl text-xs flex items-center justify-center gap-1.5 shadow-lg shadow-amber-900/50">
+                <i class="fa-solid fa-qrcode"></i> VietQR Động
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/websocket.js"></script>
+  <script src="../assets/js/app.js"></script>
+  <script>
+    function triggerAIChat(promptText) {
+      const box = document.getElementById('ai-chat-preview');
+      if (box) {
+        box.innerHTML = `
+          <div class="flex items-start gap-2">
+            <span class="text-amber-400 font-bold shrink-0"><i class="fa-solid fa-sparkles animate-spin"></i> AI:</span>
+            <p class="text-amber-100 text-[11.5px] leading-relaxed">
+              Bạn đang hỏi: "<em>${promptText}</em>"<br>
+              <strong>Gợi ý ngay:</strong> 1x Cà phê muối kem béo (ít ngọt) + 1x Bánh Croissant bơ tỏi nướng giòn. Đã có sẵn nút thêm nhanh bên dưới!
+            </p>
+          </div>
+          <div class="pt-1.5 border-t border-amber-800/60 flex items-center justify-between">
+            <span class="text-[11px] text-emerald-300 font-semibold">Khớp 99% khẩu vị yêu cầu</span>
+            <button class="bg-amber-400 hover:bg-amber-300 text-amber-950 font-bold text-[11px] px-2.5 py-1 rounded-lg shadow">
+              + Thêm combo này (55k)
+            </button>
+          </div>
+        `;
+      }
+    }
+  </script>
+</body>
+</html>

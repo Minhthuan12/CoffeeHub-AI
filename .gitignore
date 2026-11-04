@@ -1,0 +1,25 @@
+# Dependency directories
+/Be/vendor/
+/Be/node_modules/
+/Fe/node_modules/
+
+# Environment and sensitive files
+/Be/.env
+/Be/.env.backup
+/Be/.env.production
+/Fe/.env
+/Fe/.env.local
+
+# Logs and cache
+*.log
+/Be/storage/*.key
+/Be/storage/framework/cache/*
+/Be/storage/framework/sessions/*
+/Be/storage/framework/views/*
+/Be/storage/logs/*
+
+# OS / Editor files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

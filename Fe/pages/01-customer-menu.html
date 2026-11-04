@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoffeeHub - Màn hình 1: Mobile Web QR Menu & Trợ lý AI Barista tại bàn</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- TOP APP BAR -->
+  <header class="bg-amber-950 text-amber-50 px-5 py-3 border-b border-amber-900 sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="../index.html" class="flex items-center gap-2 bg-amber-900/80 hover:bg-amber-800 text-amber-200 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-all">
+          <i class="fa-solid fa-arrow-left"></i> Về Hub chính
+        </a>
+        <div class="h-4 w-px bg-amber-800"></div>
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-mobile-screen text-amber-400"></i>
+          <span class="font-bold text-sm tracking-tight">Màn hình 1: Mobile Web QR Menu & Trợ lý AI Barista tại bàn</span>
+        </div>
+      </div>
+
+      <!-- Quick switcher -->
+      <div class="flex items-center gap-2 text-xs">
+        <span class="text-amber-400 font-medium hidden sm:inline">Chuyển màn hình:</span>
+        <select onchange="if(this.value) window.location.href=this.value" class="bg-amber-900/90 text-amber-100 text-xs px-2.5 py-1.5 rounded-lg border border-amber-800 focus:outline-none">
+          <option value="01-customer-menu.html" selected>MH 1:  Mobile Web QR Menu & Trợ lý AI Barista tại bàn</option>
+          <option value="02-pos-cashier.html" >MH 2:  POS Thu ngân 2 Màn hình & Bán tại quầy</option>
+          <option value="03-barista-kds.html" >MH 3:  KDS Quầy Barista Realtime (< 0.2s)</option>
+          <option value="04-bom-recipes.html" >MH 4:  Cấu hình Định lượng Nguyên liệu (BOM)</option>
+          <option value="05-inventory-ai.html" >MH 5:  Quản lý Kho & Dự báo Tiêu thụ Tự động bằng AI</option>
+          <option value="06-manager-report.html" >MH 6:  Báo cáo Doanh thu & Trợ lý Điều hành AI Copilot</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <!-- SCREEN CONTENT -->
+  <main class="flex-1 p-4 md:p-6 flex justify-center">
+    <section id="screen-1" class="screen-view block">
+      <div class="mb-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-3">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">Màn hình 1 • Khách hàng (Mobile-first)</span>
+          <h2 class="text-lg font-bold text-slate-800 mt-1">Menu Điện Tử Gọi Món & Trợ Lý AI Tư Vấn Khẩu Vị</h2>
+          <p class="text-xs text-slate-500">Khách quét mã QR tại bàn, xem thực đơn và trò chuyện tương tác với AI để nhận gợi ý đồ uống cá nhân hóa.</p>
+        </div>
+        <div class="text-xs text-slate-600 bg-slate-50 px-3 py-2 rounded-lg border border-slate-200 flex items-center gap-2">
+          <i class="fa-solid fa-qrcode text-amber-600 text-sm"></i> Định danh: <strong>Bàn 04 (Tầng 1)</strong>
+        </div>
+      </div>
+
+      <!-- MOBILE MOCKUP CONTAINER -->
+      <div class="flex justify-center">
+        <div class="w-full max-w-md bg-white rounded-3xl shadow-2xl border-4 border-slate-800 overflow-hidden flex flex-col relative h-[780px]">
+          <!-- Mobile Status Bar -->
+          <div class="bg-amber-950 text-white px-6 py-2.5 flex justify-between items-center text-xs font-semibold select-none">
+            <span>09:41</span>
+            <div class="flex items-center gap-2">
+              <i class="fa-solid fa-wifi"></i>
+              <i class="fa-solid fa-signal"></i>
+              <i class="fa-solid fa-battery-full"></i>
+            </div>
+          </div>
+
+          <!-- Mobile App Header -->
+          <div class="bg-amber-900 text-white p-4 flex items-center justify-between border-b border-amber-800/50">
+            <div class="flex items-center gap-2.5">
+              <div class="w-8 h-8 rounded-lg bg-amber-600 flex items-center justify-center font-bold text-white text-sm">
+                <i class="fa-solid fa-mug-hot"></i>
+              </div>
+              <div>
+                <h3 class="font-bold text-sm leading-tight">CoffeeHub - Đà Nẵng</h3>
+                <span class="text-[11px] text-amber-200 flex items-center gap-1">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block animate-pulse"></span> Bàn 04 • Đang phục vụ
+                </span>
+              </div>
+            </div>
+            <button class="w-8 h-8 rounded-full bg-amber-800 flex items-center justify-center text-amber-200 hover:text-white">
+              <i class="fa-regular fa-bell"></i>
+            </button>
+          </div>
+
+          <!-- Mobile Scrollable Body -->
+          <div class="flex-1 overflow-y-auto p-4 custom-scrollbar space-y-4 pb-24 bg-slate-50">
+
+            <!-- AI ADVISOR HERO CARD (Điểm nhấn AI) -->
+            <div class="bg-gradient-to-r from-amber-700 via-amber-800 to-amber-900 text-white p-4 rounded-2xl shadow-md border border-amber-600/40 relative overflow-hidden">
+              <div class="absolute -right-4 -bottom-4 opacity-15 text-7xl text-amber-300">
+                <i class="fa-solid fa-wand-magic-sparkles"></i>
+              </div>
+              <div class="flex items-start gap-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-500/30 border border-amber-300/40 flex items-center justify-center text-amber-200 text-lg shadow-inner shrink-0">
+                  <i class="fa-solid fa-robot"></i>
+                </div>
+                <div>
+                  <h4 class="font-bold text-sm text-amber-100 flex items-center gap-1.5">
+                    Trợ lý AI Barista CoffeeHub
+                    <span class="text-[10px] bg-amber-400 text-amber-950 font-extrabold px-1.5 py-0.2 rounded">MỚI</span>
+                  </h4>
+                  <p class="text-xs text-amber-200/90 mt-1">Chưa biết uống gì hôm nay? Hãy chia sẻ gu của bạn (ngọt, béo, ít đắng, thời tiết), AI sẽ tư vấn món chuẩn xác!</p>
+                </div>
+              </div>
+
+              <!-- AI Quick Prompt Buttons -->
+              <div class="mt-3 flex flex-wrap gap-1.5">
+                <button onclick="triggerAIChat('Trời nóng, tư vấn món giải nhiệt ít ngọt')" class="text-[11px] bg-white/10 hover:bg-white/20 border border-white/20 text-amber-100 px-2.5 py-1 rounded-full transition">
+                  ☀️ Giải nhiệt ít ngọt
+                </button>
+                <button onclick="triggerAIChat('Tư vấn món ngọt béo không say cà phê')" class="text-[11px] bg-white/10 hover:bg-white/20 border border-white/20 text-amber-100 px-2.5 py-1 rounded-full transition">
+                  🥛 Ngọt béo không say
+                </button>
+                <button onclick="triggerAIChat('Món Best-seller kèm bánh')" class="text-[11px] bg-white/10 hover:bg-white/20 border border-white/20 text-amber-100 px-2.5 py-1 rounded-full transition">
+                  ⭐ Combo Best-seller
+                </button>
+              </div>
+
+              <!-- AI Interactive Chat Simulation Box -->
+              <div id="ai-chat-preview" class="mt-3 bg-amber-950/70 border border-amber-500/30 rounded-xl p-3 text-xs space-y-2">
+                <div class="flex items-start gap-2">
+                  <span class="text-amber-400 font-bold shrink-0"><i class="fa-solid fa-sparkles"></i> AI:</span>
+                  <p class="text-amber-100 text-[11.5px] leading-relaxed">
+                    Chào bạn! Buổi sáng mát mẻ tại Đà Nẵng, CoffeeHub gợi ý bạn thử <strong>Caramel Macchiato (ít ngọt)</strong> thơm dịu, hoặc <strong>Trà Đào Cam Sả hạt chia</strong> thanh mát nhé!
+                  </p>
+                </div>
+                <div class="pt-1.5 border-t border-amber-800/60 flex items-center justify-between">
+                  <span class="text-[11px] text-amber-300 italic">Được gợi ý riêng cho khẩu vị của bạn</span>
+                  <button class="bg-amber-500 hover:bg-amber-400 text-amber-950 font-bold text-[11px] px-2.5 py-1 rounded-lg shadow transition">
+                    + Thêm món gợi ý
+                  </button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Categories Tabs -->
+            <div class="flex gap-2 overflow-x-auto pb-1 custom-scrollbar text-xs font-semibold">
+              <button class="px-3 py-1.5 bg-amber-900 text-white rounded-xl shadow-sm whitespace-nowrap">🔥 Tất cả</button>
+              <button class="px-3 py-1.5 bg-white text-slate-700 hover:bg-amber-50 rounded-xl border border-slate-200 whitespace-nowrap">☕ Cà phê máy</button>
+              <button class="px-3 py-1.5 bg-white text-slate-700 hover:bg-amber-50 rounded-xl border border-slate-200 whitespace-nowrap">🍵 Trà trái cây</button>
+              <button class="px-3 py-1.5 bg-white text-slate-700 hover:bg-amber-50 rounded-xl border border-slate-200 whitespace-nowrap">🥐 Bánh ngọt</button>
+            </div>
+
+            <!-- Menu Item Cards -->
+            <div class="space-y-3">
+              <!-- Item 1 -->
+              <div class="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-sm flex gap-3 hover:border-amber-400 transition">
+                <div class="w-20 h-20 rounded-xl bg-amber-100 flex items-center justify-center text-amber-800 text-3xl font-bold shrink-0">
+                  <i class="fa-solid fa-mug-saucer"></i>
+                </div>
+                <div class="flex-1 flex flex-col justify-between">
+                  <div>
+                    <div class="flex items-start justify-between">
+                      <h5 class="font-bold text-slate-800 text-sm">Cà Phê Muối Kem Béo</h5>
+                      <span class="text-xs font-extrabold text-amber-800">35.000đ</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 line-clamp-1 mt-0.5">Espresso Robusta hòa quyện lớp kem muối biển béo ngậy</p>
+                  </div>
+                  <div class="flex items-center justify-between mt-2">
+                    <span class="text-[10px] bg-emerald-50 text-emerald-700 font-semibold px-2 py-0.5 rounded border border-emerald-200">
+                      <i class="fa-solid fa-star text-[9px]"></i> 98% Hài lòng
+                    </span>
+                    <button class="bg-amber-800 hover:bg-amber-900 text-white font-bold text-xs px-3 py-1 rounded-xl shadow-sm">
+                      + Chọn
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Item 2 -->
+              <div class="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-sm flex gap-3 hover:border-amber-400 transition">
+                <div class="w-20 h-20 rounded-xl bg-orange-100 flex items-center justify-center text-orange-700 text-3xl font-bold shrink-0">
+                  <i class="fa-solid fa-glass-water"></i>
+                </div>
+                <div class="flex-1 flex flex-col justify-between">
+                  <div>
+                    <div class="flex items-start justify-between">
+                      <h5 class="font-bold text-slate-800 text-sm">Trà Đào Cam Sả Hạt Chia</h5>
+                      <span class="text-xs font-extrabold text-amber-800">39.000đ</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 line-clamp-1 mt-0.5">Trà lài ủ lạnh thơm nồng, đào ngâm giòn ngọt thanh</p>
+                  </div>
+                  <div class="flex items-center justify-between mt-2">
+                    <span class="text-[10px] bg-amber-50 text-amber-800 font-semibold px-2 py-0.5 rounded border border-amber-200">
+                      <i class="fa-solid fa-bolt text-[9px]"></i> AI Gợi ý số 1
+                    </span>
+                    <button class="bg-amber-800 hover:bg-amber-900 text-white font-bold text-xs px-3 py-1 rounded-xl shadow-sm">
+                      + Chọn
+                    </button>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Item 3 -->
+              <div class="bg-white p-3 rounded-2xl border border-slate-200/80 shadow-sm flex gap-3 hover:border-amber-400 transition">
+                <div class="w-20 h-20 rounded-xl bg-amber-50 flex items-center justify-center text-amber-700 text-3xl font-bold shrink-0">
+                  <i class="fa-solid fa-bread-slice"></i>
+                </div>
+                <div class="flex-1 flex flex-col justify-between">
+                  <div>
+                    <div class="flex items-start justify-between">
+                      <h5 class="font-bold text-slate-800 text-sm">Bánh Croissant Bơ Tỏi</h5>
+                      <span class="text-xs font-extrabold text-amber-800">28.000đ</span>
+                    </div>
+                    <p class="text-[11px] text-slate-500 line-clamp-1 mt-0.5">Bánh sừng bò nướng giòn rụm thơm lừng sốt bơ tỏi</p>
+                  </div>
+                  <div class="flex items-center justify-between mt-2">
+                    <span class="text-[10px] bg-slate-100 text-slate-600 font-semibold px-2 py-0.5 rounded">Món ăn kèm</span>
+                    <button class="bg-amber-800 hover:bg-amber-900 text-white font-bold text-xs px-3 py-1 rounded-xl shadow-sm">
+                      + Chọn
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Bottom Sticky Cart & VietQR Bar -->
+          <div class="absolute bottom-0 left-0 right-0 bg-white border-t border-slate-200 p-3 shadow-2xl flex items-center justify-between">
+            <div>
+              <span class="text-[11px] text-slate-500">Giỏ hàng: <strong>2 món</strong></span>
+              <p class="text-base font-extrabold text-amber-900">74.000đ</p>
+            </div>
+            <div class="flex gap-2">
+              <button class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-3 py-2 rounded-xl flex items-center gap-1.5 border border-slate-300">
+                <i class="fa-solid fa-qrcode text-amber-700"></i> VietQR
+              </button>
+              <button class="bg-amber-900 hover:bg-amber-950 text-white text-xs font-bold px-4 py-2 rounded-xl shadow-md flex items-center gap-2">
+                Gửi Đơn <i class="fa-solid fa-arrow-right"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/websocket.js"></script>
+  <script src="../assets/js/app.js"></script>
+  <script>
+    function triggerAIChat(promptText) {
+      const box = document.getElementById('ai-chat-preview');
+      if (box) {
+        box.innerHTML = `
+          <div class="flex items-start gap-2">
+            <span class="text-amber-400 font-bold shrink-0"><i class="fa-solid fa-sparkles animate-spin"></i> AI:</span>
+            <p class="text-amber-100 text-[11.5px] leading-relaxed">
+              Bạn đang hỏi: "<em>${promptText}</em>"<br>
+              <strong>Gợi ý ngay:</strong> 1x Cà phê muối kem béo (ít ngọt) + 1x Bánh Croissant bơ tỏi nướng giòn. Đã có sẵn nút thêm nhanh bên dưới!
+            </p>
+          </div>
+          <div class="pt-1.5 border-t border-amber-800/60 flex items-center justify-between">
+            <span class="text-[11px] text-emerald-300 font-semibold">Khớp 99% khẩu vị yêu cầu</span>
+            <button class="bg-amber-400 hover:bg-amber-300 text-amber-950 font-bold text-[11px] px-2.5 py-1 rounded-lg shadow">
+              + Thêm combo này (55k)
+            </button>
+          </div>
+        `;
+      }
+    }
+  </script>
+</body>
+</html>

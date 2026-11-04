@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoffeeHub - Màn hình 4: Cấu hình Định lượng Nguyên liệu (BOM)</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- TOP APP BAR -->
+  <header class="bg-amber-950 text-amber-50 px-5 py-3 border-b border-amber-900 sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="../index.html" class="flex items-center gap-2 bg-amber-900/80 hover:bg-amber-800 text-amber-200 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-all">
+          <i class="fa-solid fa-arrow-left"></i> Về Hub chính
+        </a>
+        <div class="h-4 w-px bg-amber-800"></div>
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-clipboard-list text-amber-400"></i>
+          <span class="font-bold text-sm tracking-tight">Màn hình 4: Cấu hình Định lượng Nguyên liệu (BOM)</span>
+        </div>
+      </div>
+
+      <!-- Quick switcher -->
+      <div class="flex items-center gap-2 text-xs">
+        <span class="text-amber-400 font-medium hidden sm:inline">Chuyển màn hình:</span>
+        <select onchange="if(this.value) window.location.href=this.value" class="bg-amber-900/90 text-amber-100 text-xs px-2.5 py-1.5 rounded-lg border border-amber-800 focus:outline-none">
+          <option value="01-customer-menu.html" >MH 1:  Mobile Web QR Menu & Trợ lý AI Barista tại bàn</option>
+          <option value="02-pos-cashier.html" >MH 2:  POS Thu ngân 2 Màn hình & Bán tại quầy</option>
+          <option value="03-barista-kds.html" >MH 3:  KDS Quầy Barista Realtime (< 0.2s)</option>
+          <option value="04-bom-recipes.html" selected>MH 4:  Cấu hình Định lượng Nguyên liệu (BOM)</option>
+          <option value="05-inventory-ai.html" >MH 5:  Quản lý Kho & Dự báo Tiêu thụ Tự động bằng AI</option>
+          <option value="06-manager-report.html" >MH 6:  Báo cáo Doanh thu & Trợ lý Điều hành AI Copilot</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <!-- SCREEN CONTENT -->
+  <main class="flex-1 p-4 md:p-6 flex justify-center">
+    <section id="screen-4" class="screen-view block">
+      <div class="mb-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">Màn hình 4 • Quản Trị Hệ Thống (Admin)</span>
+          <h2 class="text-lg font-bold text-slate-800 mt-1">Cấu Hình Công Thức Định Lượng Nguyên Liệu (BOM - Bill of Materials)</h2>
+          <p class="text-xs text-slate-500">Cài đặt công thức định lượng chi tiết cho từng món để hệ thống tự động trừ kho nguyên liệu chính xác đến từng gram/ml.</p>
+        </div>
+        <button class="bg-amber-900 hover:bg-amber-800 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-2 shadow-sm">
+          <i class="fa-solid fa-floppy-disk"></i> Lưu Công Thức
+        </button>
+      </div>
+
+      <!-- RECIPE CONFIG WORKSPACE -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4 bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+        <!-- Selected Product Overview -->
+        <div class="lg:col-span-4 border-r border-slate-200 pr-4 space-y-4">
+          <div class="bg-amber-50 p-4 rounded-xl border border-amber-200">
+            <span class="text-[11px] font-bold text-amber-800 uppercase">Món đang cấu hình</span>
+            <h3 class="text-base font-extrabold text-amber-950 mt-1">Cà Phê Muối Kem Béo (Size L)</h3>
+            <p class="text-xs text-slate-600 mt-1">Giá bán: <strong class="text-amber-900">40.000đ</strong> | Giá vốn nguyên liệu: <strong class="text-emerald-700">11.850đ</strong></p>
+            <div class="mt-2 text-xs bg-white p-2 rounded-lg border border-amber-200 font-semibold text-emerald-700 flex justify-between">
+              <span>Tỷ suất lợi nhuận gộp:</span>
+              <span>70.3%</span>
+            </div>
+          </div>
+
+          <div class="space-y-2">
+            <label class="text-xs font-bold text-slate-700 block">Thêm nguyên liệu vào công thức:</label>
+            <select class="w-full text-xs p-2 rounded-lg border border-slate-300 focus:outline-none focus:border-amber-500 bg-white">
+              <option>-- Chọn nguyên vật liệu kho --</option>
+              <option>Cà phê hạt Robusta Buôn Ma Thuột (gram)</option>
+              <option>Sữa đặc Ngôi Sao Phương Nam (ml)</option>
+              <option>Whipping Cream Anchor (ml)</option>
+              <option>Muối hồng Himalaya (gram)</option>
+              <option>Ly nhựa nắp cầu 500ml (cái)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- BOM Ingredients Table -->
+        <div class="lg:col-span-8 space-y-3">
+          <h4 class="font-bold text-sm text-slate-800 flex items-center justify-between">
+            <span>Danh mục nguyên liệu cấu thành (BOM Items)</span>
+            <span class="text-xs text-slate-500">Tự động trừ tồn kho khi Barista bấm "Xong"</span>
+          </h4>
+
+          <div class="overflow-x-auto border border-slate-200 rounded-xl">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 border-b border-slate-200 text-slate-600 font-bold uppercase text-[10px]">
+                <tr>
+                  <th class="p-3">Nguyên Vật Liệu</th>
+                  <th class="p-3 text-center">Định lượng / Ly</th>
+                  <th class="p-3 text-center">Đơn vị</th>
+                  <th class="p-3 text-right">Đơn giá vốn</th>
+                  <th class="p-3 text-right">Thành tiền</th>
+                  <th class="p-3 text-center">Thao tác</th>
+                </tr>
+              </thead>
+              <tbody class="divide-y divide-slate-100 text-slate-700 font-medium">
+                <tr>
+                  <td class="p-3 font-bold text-slate-900">Cà phê Robusta mộc</td>
+                  <td class="p-3 text-center"><input type="number" value="25" class="w-16 text-center border rounded p-1 font-bold text-amber-900"></td>
+                  <td class="p-3 text-center text-slate-500">gram</td>
+                  <td class="p-3 text-right">220đ/g</td>
+                  <td class="p-3 text-right font-bold">5.500đ</td>
+                  <td class="p-3 text-center text-rose-500 hover:text-rose-700 cursor-pointer"><i class="fa-solid fa-trash"></i></td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-bold text-slate-900">Kem béo Rich's & Sữa</td>
+                  <td class="p-3 text-center"><input type="number" value="40" class="w-16 text-center border rounded p-1 font-bold text-amber-900"></td>
+                  <td class="p-3 text-center text-slate-500">ml</td>
+                  <td class="p-3 text-right">95đ/ml</td>
+                  <td class="p-3 text-right font-bold">3.800đ</td>
+                  <td class="p-3 text-center text-rose-500 hover:text-rose-700 cursor-pointer"><i class="fa-solid fa-trash"></i></td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-bold text-slate-900">Sữa đặc Phương Nam</td>
+                  <td class="p-3 text-center"><input type="number" value="20" class="w-16 text-center border rounded p-1 font-bold text-amber-900"></td>
+                  <td class="p-3 text-center text-slate-500">ml</td>
+                  <td class="p-3 text-right">65đ/ml</td>
+                  <td class="p-3 text-right font-bold">1.300đ</td>
+                  <td class="p-3 text-center text-rose-500 hover:text-rose-700 cursor-pointer"><i class="fa-solid fa-trash"></i></td>
+                </tr>
+                <tr>
+                  <td class="p-3 font-bold text-slate-900">Ly nắp cầu & Ống hút</td>
+                  <td class="p-3 text-center"><input type="number" value="1" class="w-16 text-center border rounded p-1 font-bold text-amber-900"></td>
+                  <td class="p-3 text-center text-slate-500">bộ</td>
+                  <td class="p-3 text-right">1.250đ</td>
+                  <td class="p-3 text-right font-bold">1.250đ</td>
+                  <td class="p-3 text-center text-rose-500 hover:text-rose-700 cursor-pointer"><i class="fa-solid fa-trash"></i></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/websocket.js"></script>
+  <script src="../assets/js/app.js"></script>
+  <script>
+    function triggerAIChat(promptText) {
+      const box = document.getElementById('ai-chat-preview');
+      if (box) {
+        box.innerHTML = `
+          <div class="flex items-start gap-2">
+            <span class="text-amber-400 font-bold shrink-0"><i class="fa-solid fa-sparkles animate-spin"></i> AI:</span>
+            <p class="text-amber-100 text-[11.5px] leading-relaxed">
+              Bạn đang hỏi: "<em>${promptText}</em>"<br>
+              <strong>Gợi ý ngay:</strong> 1x Cà phê muối kem béo (ít ngọt) + 1x Bánh Croissant bơ tỏi nướng giòn. Đã có sẵn nút thêm nhanh bên dưới!
+            </p>
+          </div>
+          <div class="pt-1.5 border-t border-amber-800/60 flex items-center justify-between">
+            <span class="text-[11px] text-emerald-300 font-semibold">Khớp 99% khẩu vị yêu cầu</span>
+            <button class="bg-amber-400 hover:bg-amber-300 text-amber-950 font-bold text-[11px] px-2.5 py-1 rounded-lg shadow">
+              + Thêm combo này (55k)
+            </button>
+          </div>
+        `;
+      }
+    }
+  </script>
+</body>
+</html>

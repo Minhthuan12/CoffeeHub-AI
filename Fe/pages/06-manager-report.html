@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoffeeHub - Màn hình 6: Báo cáo Doanh thu & Trợ lý Điều hành AI Copilot</title>
+  <script src="https://www.gstatic.com/antigravity/web/dev/tailwindcss.min.js"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="../assets/css/style.css">
+</head>
+<body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex flex-col">
+
+  <!-- TOP APP BAR -->
+  <header class="bg-amber-950 text-amber-50 px-5 py-3 border-b border-amber-900 sticky top-0 z-50 shadow-md">
+    <div class="max-w-7xl mx-auto flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <a href="../index.html" class="flex items-center gap-2 bg-amber-900/80 hover:bg-amber-800 text-amber-200 hover:text-white px-3 py-1.5 rounded-lg text-xs font-semibold transition-all">
+          <i class="fa-solid fa-arrow-left"></i> Về Hub chính
+        </a>
+        <div class="h-4 w-px bg-amber-800"></div>
+        <div class="flex items-center gap-2">
+          <i class="fa-solid fa-chart-pie text-amber-400"></i>
+          <span class="font-bold text-sm tracking-tight">Màn hình 6: Báo cáo Doanh thu & Trợ lý Điều hành AI Copilot</span>
+        </div>
+      </div>
+
+      <!-- Quick switcher -->
+      <div class="flex items-center gap-2 text-xs">
+        <span class="text-amber-400 font-medium hidden sm:inline">Chuyển màn hình:</span>
+        <select onchange="if(this.value) window.location.href=this.value" class="bg-amber-900/90 text-amber-100 text-xs px-2.5 py-1.5 rounded-lg border border-amber-800 focus:outline-none">
+          <option value="01-customer-menu.html" >MH 1:  Mobile Web QR Menu & Trợ lý AI Barista tại bàn</option>
+          <option value="02-pos-cashier.html" >MH 2:  POS Thu ngân 2 Màn hình & Bán tại quầy</option>
+          <option value="03-barista-kds.html" >MH 3:  KDS Quầy Barista Realtime (< 0.2s)</option>
+          <option value="04-bom-recipes.html" >MH 4:  Cấu hình Định lượng Nguyên liệu (BOM)</option>
+          <option value="05-inventory-ai.html" >MH 5:  Quản lý Kho & Dự báo Tiêu thụ Tự động bằng AI</option>
+          <option value="06-manager-report.html" selected>MH 6:  Báo cáo Doanh thu & Trợ lý Điều hành AI Copilot</option>
+        </select>
+      </div>
+    </div>
+  </header>
+
+  <!-- SCREEN CONTENT -->
+  <main class="flex-1 p-4 md:p-6 flex justify-center">
+    <section id="screen-6" class="screen-view block">
+      <div class="mb-4 bg-white p-4 rounded-xl border border-slate-200 shadow-sm flex items-center justify-between">
+        <div>
+          <span class="text-xs font-bold uppercase tracking-wider text-amber-700 bg-amber-50 px-2.5 py-1 rounded-md border border-amber-200">Màn hình 6 • Chủ Quán (Admin Dashboard)</span>
+          <h2 class="text-lg font-bold text-slate-800 mt-1">Báo Cáo Doanh Thu & Trợ Lý Điều Hành Ảo AI Copilot</h2>
+          <p class="text-xs text-slate-500">Theo dõi dòng tiền, tỷ suất lợi nhuận và hỏi đáp dữ liệu kinh doanh trực tiếp bằng tiếng Việt tự nhiên với AI.</p>
+        </div>
+        <div class="text-xs text-slate-600 bg-slate-50 px-3 py-1.5 rounded-lg border border-slate-200 font-semibold">
+          Hôm nay: <strong>Chủ Nhật, 01/11/2026</strong>
+        </div>
+      </div>
+
+      <!-- MAIN DASHBOARD CONTENT -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-4">
+
+        <!-- LEFT: METRIC CARDS & CHARTS (8 cols) -->
+        <div class="lg:col-span-8 space-y-4">
+          <!-- 4 KPI Cards -->
+          <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+            <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+              <span class="text-[11px] font-bold text-slate-500">Doanh thu hôm nay</span>
+              <p class="text-lg font-black text-amber-950 mt-1">4.850.000đ</p>
+              <span class="text-[10px] text-emerald-600 font-bold flex items-center gap-1 mt-1">
+                <i class="fa-solid fa-arrow-trend-up"></i> +18.4% so với hôm qua
+              </span>
+            </div>
+
+            <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+              <span class="text-[11px] font-bold text-slate-500">Tổng hóa đơn</span>
+              <p class="text-lg font-black text-slate-800 mt-1">112 Đơn</p>
+              <span class="text-[10px] text-emerald-600 font-bold flex items-center gap-1 mt-1">
+                <i class="fa-solid fa-arrow-trend-up"></i> +12 đơn
+              </span>
+            </div>
+
+            <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+              <span class="text-[11px] font-bold text-slate-500">Giá trị TB/Đơn</span>
+              <p class="text-lg font-black text-amber-800 mt-1">43.300đ</p>
+              <span class="text-[10px] text-purple-600 font-bold mt-1 block">Nhờ AI Upsell (+15%)</span>
+            </div>
+
+            <div class="bg-white p-3.5 rounded-xl border border-slate-200 shadow-sm">
+              <span class="text-[11px] font-bold text-slate-500">Tỷ suất lãi gộp</span>
+              <p class="text-lg font-black text-emerald-700 mt-1">68.2%</p>
+              <span class="text-[10px] text-slate-500 mt-1 block">Chi phí vốn chuẩn BOM</span>
+            </div>
+          </div>
+
+          <!-- Chart Simulation Box -->
+          <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm">
+            <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h4 class="font-bold text-xs uppercase text-slate-700 tracking-wider">Biểu đồ doanh thu theo khung giờ (Peak Hours)</h4>
+              <span class="text-xs text-amber-800 font-semibold bg-amber-50 px-2 py-0.5 rounded">Khung giờ cao điểm: 08:00 - 10:30</span>
+            </div>
+            <!-- Mock Visual Bars -->
+            <div class="h-44 flex items-end justify-between gap-2 pt-6 px-4">
+              <div class="w-full flex flex-col items-center gap-1.5"><div class="w-full bg-amber-200 rounded-t h-12"></div><span class="text-[10px] text-slate-500">07h</span></div>
+              <div class="w-full flex flex-col items-center gap-1.5"><div class="w-full bg-amber-500 rounded-t h-32"></div><span class="text-[10px] text-slate-500">08h</span></div>
+              <div class="w-full flex flex-col items-center gap-1.5"><div class="w-full bg-amber-600 rounded-t h-36"></div><span class="text-[10px] text-slate-500">09h</span></div>
+              <div class="w-full flex flex-col items-center gap-1.5"><div class="w-full bg-amber-500 rounded-t h-28"></div><span class="text-[10px] text-slate-500">10h</span></div>
+              <div class="w-full flex flex-col items-center gap-1.5"><div class="w-full bg-amber-300 rounded-t h-16"></div><span class="text-[10px] text-slate-500">11h</span></div>
+              <div class="w-full flex flex-col items-center gap-1.5"><div class="w-full bg-amber-200 rounded-t h-14"></div><span class="text-[10px] text-slate-500">12h</span></div>
+              <div class="w-full flex flex-col items-center gap-1.5"><div class="w-full bg-amber-400 rounded-t h-24"></div><span class="text-[10px] text-slate-500">14h</span></div>
+              <div class="w-full flex flex-col items-center gap-1.5"><div class="w-full bg-amber-500 rounded-t h-30"></div><span class="text-[10px] text-slate-500">16h</span></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: AI BUSINESS COPILOT CHATBOT (Điểm nhấn AI Quản Trị) (4 cols) -->
+        <div class="lg:col-span-4 bg-slate-900 rounded-2xl p-4 border border-slate-800 text-white flex flex-col justify-between shadow-xl h-[520px]">
+          <div>
+            <!-- Chat Header -->
+            <div class="flex items-center gap-2.5 pb-3 border-b border-slate-800">
+              <div class="w-9 h-9 rounded-xl bg-amber-500 flex items-center justify-center text-slate-950 font-bold text-sm shadow">
+                <i class="fa-solid fa-sparkles"></i>
+              </div>
+              <div>
+                <h4 class="font-extrabold text-sm text-white">AI Business Copilot</h4>
+                <span class="text-[11px] text-emerald-400 flex items-center gap-1">
+                  <span class="w-2 h-2 rounded-full bg-emerald-400 inline-block"></span> Phân tích trực tiếp CSDL CoffeeHub
+                </span>
+              </div>
+            </div>
+
+            <!-- Chat Messages Log -->
+            <div class="my-3 space-y-3 overflow-y-auto max-h-72 custom-scrollbar text-xs pr-1">
+              <!-- User message -->
+              <div class="flex justify-end">
+                <div class="bg-amber-600 text-white p-2.5 rounded-2xl rounded-tr-none max-w-[85%]">
+                  "Món nào đang đem lại lợi nhuận cao nhất tuần này?"
+                </div>
+              </div>
+
+              <!-- AI Assistant message -->
+              <div class="flex items-start gap-2">
+                <div class="w-6 h-6 rounded-full bg-amber-400/20 text-amber-300 flex items-center justify-center text-[10px] font-bold shrink-0 mt-1">
+                  AI
+                </div>
+                <div class="bg-slate-800 border border-slate-700 text-slate-200 p-2.5 rounded-2xl rounded-tl-none text-[11.5px] leading-relaxed">
+                  Dựa trên <strong>842 đơn hàng</strong> tuần này:
+                  <br>• <strong>Cà Phê Muối Kem Béo</strong> đứng đầu với lợi nhuận gộp <strong>7.820.000đ</strong> (Lãi gộp 70.3%/ly).
+                  <br>• <strong>Trà Đào Cam Sả</strong> đứng thứ 2: <strong>5.410.000đ</strong>.
+                  <p class="text-amber-300 mt-1.5 font-semibold">💡 Lời khuyên AI: Nên duy trì combo Cà phê muối + Croissant tại quầy POS để tối ưu doanh thu ca sáng!</p>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Chat Input -->
+          <div class="pt-2 border-t border-slate-800">
+            <div class="relative">
+              <input type="text" placeholder="Hỏi AI về doanh thu, tồn kho, khách hàng..." class="w-full bg-slate-800 border border-slate-700 rounded-xl pl-3 pr-9 py-2 text-xs text-white placeholder-slate-400 focus:outline-none focus:border-amber-400">
+              <button class="absolute right-2 top-2 text-amber-400 hover:text-amber-300 text-xs">
+                <i class="fa-solid fa-paper-plane"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+
+      </div>
+    </section>
+  </main>
+
+  <script src="../assets/js/api.js"></script>
+  <script src="../assets/js/websocket.js"></script>
+  <script src="../assets/js/app.js"></script>
+  <script>
+    function triggerAIChat(promptText) {
+      const box = document.getElementById('ai-chat-preview');
+      if (box) {
+        box.innerHTML = `
+          <div class="flex items-start gap-2">
+            <span class="text-amber-400 font-bold shrink-0"><i class="fa-solid fa-sparkles animate-spin"></i> AI:</span>
+            <p class="text-amber-100 text-[11.5px] leading-relaxed">
+              Bạn đang hỏi: "<em>${promptText}</em>"<br>
+              <strong>Gợi ý ngay:</strong> 1x Cà phê muối kem béo (ít ngọt) + 1x Bánh Croissant bơ tỏi nướng giòn. Đã có sẵn nút thêm nhanh bên dưới!
+            </p>
+          </div>
+          <div class="pt-1.5 border-t border-amber-800/60 flex items-center justify-between">
+            <span class="text-[11px] text-emerald-300 font-semibold">Khớp 99% khẩu vị yêu cầu</span>
+            <button class="bg-amber-400 hover:bg-amber-300 text-amber-950 font-bold text-[11px] px-2.5 py-1 rounded-lg shadow">
+              + Thêm combo này (55k)
+            </button>
+          </div>
+        `;
+      }
+    }
+  </script>
+</body>
+</html>
