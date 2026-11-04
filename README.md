@@ -26,8 +26,6 @@ AICoffeeHub/
 │   ├── index.html  # Hub điều phối trung tâm chuyển đổi 6 Màn hình cốt lõi
 │   ├── pages/      # 6 Màn hình chức năng độc lập (Customer QR, POS, KDS, BOM, Kho, Báo cáo)
 │   └── assets/     # Style Design System, REST API Client, WebSocket Manager
-└── docs/           # Tài liệu kỹ thuật
-    └── CoffeeHub_UseCase_TongQuat.drawio               # Sơ đồ Use Case chuẩn UML 2.5
 ```
 
 ---
