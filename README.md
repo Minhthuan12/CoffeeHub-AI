@@ -27,7 +27,6 @@ AICoffeeHub/
 │   ├── pages/      # 6 Màn hình chức năng độc lập (Customer QR, POS, KDS, BOM, Kho, Báo cáo)
 │   └── assets/     # Style Design System, REST API Client, WebSocket Manager
 └── docs/           # Tài liệu kỹ thuật
-    ├── BaoCao_TongHop_DoAn_CDIO_SE447G_CoffeeHub.docx  # Báo cáo tổng hợp toàn diện các chương
     └── CoffeeHub_UseCase_TongQuat.drawio               # Sơ đồ Use Case chuẩn UML 2.5
 ```
 
