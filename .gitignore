@@ -23,3 +23,11 @@
 Thumbs.db
 .vscode/
 .idea/
+
+# Document files (Báo cáo, slide)
+/docs/
+*.docx
+*.doc
+*.pptx
+*.ppt
+*.pdf
