@@ -56,20 +56,40 @@ class CoffeeHubApi {
   }
 
   // --- 1. XÁC THỰC & NGƯỜI DÙNG ---
-  async login(username, password) {
-    return this.request('/auth/login', {
+  async login(email, password) {
+    const res = await this.request('/admin/nhan-vien/login', {
       method: 'POST',
-      body: JSON.stringify({ username, password })
+      body: JSON.stringify({ email, password })
     });
+    if (res && res.token) {
+      this.setToken(res.token);
+    }
+    return res;
+  }
+
+  async checkLogin() {
+    return this.request('/check-login');
   }
 
   async getProfile() {
-    return this.request('/auth/profile');
+    return this.request('/admin/trang-ca-nhan/thong-tin');
   }
 
   // --- 2. THỰC ĐƠN & GỌI MÓN (QR BÀN) ---
+  async getCategories() {
+    return this.request('/menu/danh-muc');
+  }
+
+  async getActiveProducts() {
+    return this.request('/menu/public');
+  }
+
+  async getTables() {
+    return this.request('/ban/public');
+  }
+
   async getTableMenu(tableCode) {
-    return this.request(`/menu/table/${tableCode}`);
+    return this.request(`/menu/public`);
   }
 
   async createQrOrder(orderPayload) {

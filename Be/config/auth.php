@@ -1,6 +1,7 @@
 <?php
 
 use App\Models\User;
+use App\Models\NhanVien;
 
 return [
 
@@ -42,6 +43,10 @@ return [
             'driver' => 'session',
             'provider' => 'users',
         ],
+        'nv' => [
+            'driver' => 'session',
+            'provider' => 'nhan_vien',
+        ],
     ],
 
     /*
@@ -65,6 +70,10 @@ return [
         'users' => [
             'driver' => 'eloquent',
             'model' => env('AUTH_MODEL', User::class),
+        ],
+        'nhan_vien' => [
+            'driver' => 'eloquent',
+            'model' => NhanVien::class,
         ],
 
         // 'users' => [
