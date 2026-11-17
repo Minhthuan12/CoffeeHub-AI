@@ -10,6 +10,12 @@ use App\Http\Controllers\DanhMucController;
 use App\Http\Controllers\SanPhamController;
 use App\Http\Controllers\KhuVucBanController;
 use App\Http\Controllers\BanController;
+use App\Http\Controllers\KhachHangController;
+use App\Http\Controllers\VoucherController;
+use App\Http\Controllers\HoaDonController;
+use App\Http\Controllers\ChiTietHoaDonController;
+use App\Http\Controllers\GiaoDichController;
+use App\Http\Controllers\OrderApiController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -25,11 +31,18 @@ Route::get('/admin/chuc-vu/public-active', [ChucVuController::class, 'getDataAct
 Route::get('/check-login', [NhanVienController::class, 'checkLogin']);
 Route::post('/quen-mat-khau', [NhanVienController::class, 'quenMatKhau']);
 Route::post('/dat-mat-khau-moi', [NhanVienController::class, 'datMatKhauMoi']);
+Route::get('/lay-giao-dich', [GiaoDichController::class, 'getData']);
 
 // Public Menu & Bàn cho Khách quét mã QR
 Route::get('/menu/public', [SanPhamController::class, 'getDataActive']);
 Route::get('/menu/danh-muc', [DanhMucController::class, 'getData']);
 Route::get('/ban/public', [BanController::class, 'getBanTrangThai']);
+
+// Quy trình Pay-First & Đặt món QR tại bàn
+Route::post('/orders/qr-create', [OrderApiController::class, 'createQrOrder']);
+Route::get('/orders/{id}/status', [OrderApiController::class, 'getOrderStatus']);
+Route::get('/pos/orders/pending', [OrderApiController::class, 'getPendingQrOrders']);
+Route::post('/pos/orders/{id}/approve', [OrderApiController::class, 'approveOrderPayment']);
 
 // ==========================================
 // PROTECTED ROUTES (Cần đăng nhập / Phân quyền)
@@ -112,5 +125,52 @@ Route::prefix('admin')->group(function () {
         Route::post('/update', [BanController::class, 'update'])->middleware('checkLogin:74');
         Route::post('/change-status', [BanController::class, 'changeStatus'])->middleware('checkLogin:75');
         Route::get('/ban-hang/get-data', [BanController::class, 'getBanTrangThai'])->middleware('checkLogin:109');
+    });
+
+    // Khách hàng
+    Route::prefix('khach-hang')->group(function () {
+        Route::get('/get-data', [KhachHangController::class, 'getData'])->middleware('checkLogin:76');
+        Route::post('/store', [KhachHangController::class, 'store'])->middleware('checkLogin:77');
+        Route::post('/delete', [KhachHangController::class, 'destroy'])->middleware('checkLogin:78');
+        Route::post('/update', [KhachHangController::class, 'update'])->middleware('checkLogin:79');
+        Route::post('/tim-khach-hang', [KhachHangController::class, 'timKhachHang'])->middleware('checkLogin:120');
+        Route::post('/change-status', [KhachHangController::class, 'changeStatus'])->middleware('checkLogin:80');
+    });
+
+    // Voucher
+    Route::prefix('voucher')->group(function () {
+        Route::get('/get-data', [VoucherController::class, 'getData'])->middleware('checkLogin:81');
+        Route::post('/store', [VoucherController::class, 'store'])->middleware('checkLogin:82');
+        Route::post('/delete', [VoucherController::class, 'destroy'])->middleware('checkLogin:83');
+        Route::post('/update', [VoucherController::class, 'update'])->middleware('checkLogin:84');
+        Route::post('/ap-dung', [VoucherController::class, 'apDungVoucher'])->middleware('checkLogin:116');
+        Route::post('/huy-voucher', [VoucherController::class, 'huyVoucher'])->middleware('checkLogin:117');
+    });
+
+    // Hóa đơn & Chi tiết hóa đơn
+    Route::prefix('hoa-don')->group(function () {
+        Route::get('/get-data', [HoaDonController::class, 'getData'])->middleware('checkLogin:85');
+        Route::get('/mo-ban/{id_ban}', [HoaDonController::class, 'moBan'])->middleware('checkLogin:113');
+        Route::get('/get-hoa-don/{id_ban}', [HoaDonController::class, 'getHoaDonTheoBan'])->middleware('checkLogin:118');
+        Route::post('/thanh-toan', [HoaDonController::class, 'thanhToan'])->middleware('checkLogin:122');
+        Route::post('/xac-nhan-thanh-toan', [HoaDonController::class, 'xacNhanThanhToan'])->middleware('checkLogin:122');
+        Route::post('/store', [HoaDonController::class, 'store'])->middleware('checkLogin:87');
+        Route::post('/delete', [HoaDonController::class, 'destroy'])->middleware('checkLogin:88');
+        Route::post('/update', [HoaDonController::class, 'update'])->middleware('checkLogin:89');
+        Route::post('/change-status', [HoaDonController::class, 'changeStatus'])->middleware('checkLogin:90');
+        Route::get('/in-hoa-don/{id}', [HoaDonController::class, 'inHoaDon'])->middleware('checkLogin:122');
+    });
+
+    Route::prefix('chi-tiet-hoa-don')->group(function () {
+        Route::post('/them-mon', [ChiTietHoaDonController::class, 'themMon'])->middleware('checkLogin:112');
+        Route::get('/get-data', [ChiTietHoaDonController::class, 'getData'])->middleware('checkLogin:86');
+        Route::get('/get-theo-hoa-don/{id_hoa_don}', [ChiTietHoaDonController::class, 'getTheoHoaDon'])->middleware('checkLogin:121');
+        Route::get('/get-theo-ban/{id}', [ChiTietHoaDonController::class, 'getTheoBan'])->middleware('checkLogin:110');
+        Route::get('/in-pha-che/{id}', [ChiTietHoaDonController::class, 'inPhaChe'])->middleware('checkLogin:111');
+        Route::post('/store', [ChiTietHoaDonController::class, 'store'])->middleware('checkLogin:91');
+        Route::post('/update', [ChiTietHoaDonController::class, 'update'])->middleware('checkLogin:119');
+        Route::post('/delete', [ChiTietHoaDonController::class, 'destroy'])->middleware('checkLogin:92');
+        Route::get('/bep-che-bien', [ChiTietHoaDonController::class, 'bepCheBien'])->middleware('checkLogin:114');
+        Route::post('/xong-mon', [ChiTietHoaDonController::class, 'xongMon'])->middleware('checkLogin:115');
     });
 });

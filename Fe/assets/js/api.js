@@ -115,6 +115,37 @@ class CoffeeHubApi {
     });
   }
 
+  async openTable(id_ban) {
+    return this.request(`/admin/hoa-don/mo-ban/${id_ban}`);
+  }
+
+  async getTableInvoice(id_ban) {
+    return this.request(`/admin/hoa-don/get-hoa-don/${id_ban}`);
+  }
+
+  async addOrderItem(id_ban, id_san_pham, so_luong = 1, don_gia = 0, ghi_chu = '') {
+    return this.request('/admin/chi-tiet-hoa-don/them-mon', {
+      method: 'POST',
+      body: JSON.stringify({
+        id_hd: id_ban,
+        id_san_pham: id_san_pham,
+        so_luong: so_luong,
+        don_gia: don_gia,
+        ghi_chu: ghi_chu
+      })
+    });
+  }
+
+  async confirmInvoicePayment(id_hoa_don, paymentMethod = 2) {
+    return this.request('/admin/hoa-don/xac-nhan-thanh-toan', {
+      method: 'POST',
+      body: JSON.stringify({
+        id_hoa_don: id_hoa_don,
+        phuong_thuc_thanh_toan: paymentMethod
+      })
+    });
+  }
+
   // --- 4. BARISTA (KDS REALTIME) ---
   async getKdsOrders() {
     return this.request('/kds/queue');
