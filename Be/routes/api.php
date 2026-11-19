@@ -16,6 +16,11 @@ use App\Http\Controllers\HoaDonController;
 use App\Http\Controllers\ChiTietHoaDonController;
 use App\Http\Controllers\GiaoDichController;
 use App\Http\Controllers\OrderApiController;
+use App\Http\Controllers\CongThucMonController;
+use App\Http\Controllers\NguyenLieuController;
+use App\Http\Controllers\NhaCungCapController;
+use App\Http\Controllers\PhieuNhapKhoController;
+use App\Http\Controllers\ChiTietPhieuNhapController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -43,6 +48,13 @@ Route::post('/orders/qr-create', [OrderApiController::class, 'createQrOrder']);
 Route::get('/orders/{id}/status', [OrderApiController::class, 'getOrderStatus']);
 Route::get('/pos/orders/pending', [OrderApiController::class, 'getPendingQrOrders']);
 Route::post('/pos/orders/{id}/approve', [OrderApiController::class, 'approveOrderPayment']);
+
+// Quầy Barista (KDS Realtime) & Kho Định lượng (BOM)
+Route::get('/kds/queue', [OrderApiController::class, 'getKdsQueue']);
+Route::post('/kds/orders/{id}/start', [OrderApiController::class, 'startMakingOrder']);
+Route::post('/kds/orders/{id}/complete', [OrderApiController::class, 'completeOrder']);
+Route::get('/inventory/recipes', [OrderApiController::class, 'getBomRecipes']);
+Route::get('/inventory/items', [OrderApiController::class, 'getInventoryItems']);
 
 // ==========================================
 // PROTECTED ROUTES (Cần đăng nhập / Phân quyền)
@@ -90,6 +102,43 @@ Route::prefix('admin')->group(function () {
         Route::post('/doi-mat-khau', [NhanVienController::class, 'changePassword'])->middleware('checkLogin:125');
     });
 
+    // Nhà cung cấp
+    Route::prefix('nha-cung-cap')->group(function () {
+        Route::get('/get-data', [NhaCungCapController::class, 'getData'])->middleware('checkLogin:23');
+        Route::get('/get-data-active', [NhaCungCapController::class, 'getDataActive'])->middleware('checkLogin:24');
+        Route::post('/store', [NhaCungCapController::class, 'store'])->middleware('checkLogin:25');
+        Route::post('/delete', [NhaCungCapController::class, 'destroy'])->middleware('checkLogin:26');
+        Route::post('/update', [NhaCungCapController::class, 'update'])->middleware('checkLogin:27');
+        Route::post('/change-status', [NhaCungCapController::class, 'changeStatus'])->middleware('checkLogin:28');
+    });
+
+    // Nguyên liệu
+    Route::prefix('nguyen-lieu')->group(function () {
+        Route::get('/get-data', [NguyenLieuController::class, 'getData'])->middleware('checkLogin:29');
+        Route::get('/get-data-active', [NguyenLieuController::class, 'getDataActive'])->middleware('checkLogin:30');
+        Route::post('/store', [NguyenLieuController::class, 'store'])->middleware('checkLogin:31');
+        Route::post('/delete', [NguyenLieuController::class, 'destroy'])->middleware('checkLogin:32');
+        Route::post('/update', [NguyenLieuController::class, 'update'])->middleware('checkLogin:33');
+        Route::post('/change-status', [NguyenLieuController::class, 'changeStatus'])->middleware('checkLogin:34');
+    });
+
+    // Phiếu nhập kho & Chi tiết phiếu nhập
+    Route::prefix('phieu-nhap-kho')->group(function () {
+        Route::get('/get-data', [PhieuNhapKhoController::class, 'getData'])->middleware('checkLogin:46');
+        Route::post('/store', [PhieuNhapKhoController::class, 'store'])->middleware('checkLogin:48');
+        Route::post('/chot-phieu', [PhieuNhapKhoController::class, 'chotPhieu'])->middleware('checkLogin:50');
+        Route::post('/huy-chot-phieu', [PhieuNhapKhoController::class, 'huyChotPhieu'])->middleware('checkLogin:50');
+        Route::post('/delete', [PhieuNhapKhoController::class, 'destroy'])->middleware('checkLogin:49');
+        Route::post('/update', [PhieuNhapKhoController::class, 'update'])->middleware('checkLogin:50');
+    });
+
+    Route::prefix('chi-tiet-phieu-nhap')->group(function () {
+        Route::get('/get-data', [ChiTietPhieuNhapController::class, 'getData'])->middleware('checkLogin:47');
+        Route::get('/get-theo-phieu-nhap/{id}', [ChiTietPhieuNhapController::class, 'getTheoPhieuNhap'])->middleware('checkLogin:47');
+        Route::post('/store', [ChiTietPhieuNhapController::class, 'store'])->middleware('checkLogin:51');
+        Route::post('/delete', [ChiTietPhieuNhapController::class, 'destroy'])->middleware('checkLogin:52');
+    });
+
     // Danh mục
     Route::prefix('danh-muc')->group(function () {
         Route::get('/get-data', [DanhMucController::class, 'getData'])->middleware('checkLogin:53');
@@ -107,6 +156,14 @@ Route::prefix('admin')->group(function () {
         Route::post('/delete', [SanPhamController::class, 'destroy'])->middleware('checkLogin:60');
         Route::post('/update', [SanPhamController::class, 'update'])->middleware('checkLogin:61');
         Route::post('/change-status', [SanPhamController::class, 'changeStatus'])->middleware('checkLogin:62');
+    });
+
+    // Công thức món (BOM)
+    Route::prefix('cong-thuc-mon')->group(function () {
+        Route::get('/get-data', [CongThucMonController::class, 'getData'])->middleware('checkLogin:63');
+        Route::post('/store', [CongThucMonController::class, 'store'])->middleware('checkLogin:64');
+        Route::post('/delete', [CongThucMonController::class, 'destroy'])->middleware('checkLogin:65');
+        Route::post('/update', [CongThucMonController::class, 'update'])->middleware('checkLogin:66');
     });
 
     // Khu vực bàn

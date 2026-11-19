@@ -260,9 +260,30 @@ class ChiTietHoaDonController extends Controller
         if ($row) {
             $row->tinh_trang = 2;
             $row->save();
+
+            // Tự động trừ kho nguyên liệu theo định lượng BOM (Bill of Materials)
+            $deductions = [];
+            $recipes = \App\Models\CongThucMon::where('id_san_pham', $row->id_san_pham)->get();
+            foreach ($recipes as $rcp) {
+                $nl = \App\Models\NguyenLieu::find($rcp->id_nguyen_lieu);
+                if ($nl) {
+                    $usedAmount = (float)$rcp->so_luong * (int)$row->so_luong;
+                    $nl->so_luong_ton = max(0, (float)$nl->so_luong_ton - $usedAmount);
+                    $nl->save();
+                    $deductions[] = [
+                        'ten_nguyen_lieu' => $nl->ten_nguyen_lieu,
+                        'so_luong_tru'    => $usedAmount,
+                        'ton_hien_tai'    => $nl->so_luong_ton,
+                        'don_vi'          => $rcp->don_vi ?: $nl->don_vi_tinh,
+                        'canh_bao'        => $nl->so_luong_ton <= $nl->muc_canh_bao
+                    ];
+                }
+            }
+
             return response()->json([
-                'status' => 1,
-                'message' => 'Đã hoàn thành chế biến'
+                'status'     => 1,
+                'message'    => 'Đã hoàn thành chế biến & tự động trừ kho nguyên vật liệu (BOM) thành công!',
+                'deductions' => $deductions
             ], 200);
         } else {
             return response()->json([
