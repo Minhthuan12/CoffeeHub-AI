@@ -2,6 +2,7 @@
 /Be/vendor/
 /Be/node_modules/
 /Fe/node_modules/
+/Fe/dist/
 
 # Environment and sensitive files
 /Be/.env

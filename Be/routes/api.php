@@ -22,6 +22,7 @@ use App\Http\Controllers\NhaCungCapController;
 use App\Http\Controllers\PhieuNhapKhoController;
 use App\Http\Controllers\ChiTietPhieuNhapController;
 use App\Http\Controllers\AiBaristaController;
+use App\Http\Controllers\ThongKeController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -242,5 +243,22 @@ Route::prefix('admin')->group(function () {
         Route::post('/delete', [ChiTietHoaDonController::class, 'destroy'])->middleware('checkLogin:92');
         Route::get('/bep-che-bien', [ChiTietHoaDonController::class, 'bepCheBien'])->middleware('checkLogin:114');
         Route::post('/xong-mon', [ChiTietHoaDonController::class, 'xongMon'])->middleware('checkLogin:115');
+    });
+
+    // Thống kê & Báo cáo Dashboard
+    Route::prefix('thong-ke')->group(function () {
+        Route::post('/doanh-thu-ban-theo-ngay', [ThongKeController::class, 'thongKeDoanhThuBanTheoNgay'])->middleware('checkLogin:99');
+        Route::post('/san-pham-da-ban-theo-ngay', [ThongKeController::class, 'thongKeSanPhamDaBan'])->middleware('checkLogin:100');
+        Route::post('/nguyen-lieu-da-nhap', [ThongKeController::class, 'nguyenLieuDaNhap'])->middleware('checkLogin:101');
+        Route::post('/doanh-thu-theo-danh-muc', [ThongKeController::class, 'doanhThuTheoDanhMuc'])->middleware('checkLogin:102');
+        Route::post('/doanh-thu-theo-khu-vuc', [ThongKeController::class, 'doanhThuTheoKhuVuc'])->middleware('checkLogin:103');
+        Route::get('/doanh-thu-7-ngay', [ThongKeController::class, 'doanhThu7NgayGanNhat'])->middleware('checkLogin:104');
+        Route::get('/doanh-thu-danh-muc-dashboard', [ThongKeController::class, 'doanhThuTheoDanhMucDashboard'])->middleware('checkLogin:105');
+        Route::get('/doanh-thu-theo-thang', [ThongKeController::class, 'doanhThuTheoThang'])->middleware('checkLogin:106');
+        Route::get('/hoa-don-gan-nhat', [ThongKeController::class, 'hoaDonGanNhat'])->middleware('checkLogin:107');
+        Route::get('/phan-cong-ca-lam-hom-nay', [ThongKeController::class, 'phanCongCaLamHomNay'])->middleware('checkLogin:108');
+        Route::get('/kpi-dashboard', [ThongKeController::class, 'thongKeKpiDashboard'])->middleware('checkLogin:127');
+        Route::post('/nguyen-lieu-da-xuat', [ThongKeController::class, 'nguyenLieuDaXuat'])->middleware('checkLogin:101');
+        Route::post('/chi-tiet-xuat-kho-nguyen-lieu', [ThongKeController::class, 'chiTietXuatKhoNguyenLieu'])->middleware('checkLogin:101');
     });
 });
