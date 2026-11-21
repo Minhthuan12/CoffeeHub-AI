@@ -21,6 +21,7 @@ use App\Http\Controllers\NguyenLieuController;
 use App\Http\Controllers\NhaCungCapController;
 use App\Http\Controllers\PhieuNhapKhoController;
 use App\Http\Controllers\ChiTietPhieuNhapController;
+use App\Http\Controllers\AiBaristaController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -55,6 +56,18 @@ Route::post('/kds/orders/{id}/start', [OrderApiController::class, 'startMakingOr
 Route::post('/kds/orders/{id}/complete', [OrderApiController::class, 'completeOrder']);
 Route::get('/inventory/recipes', [OrderApiController::class, 'getBomRecipes']);
 Route::get('/inventory/items', [OrderApiController::class, 'getInventoryItems']);
+
+// ==========================================
+// AI BARISTA ASSISTANT & COPILOT (UC08 & UC36)
+// ==========================================
+Route::prefix('ai')->group(function () {
+    Route::post('/session/create', [AiBaristaController::class, 'createSession']);
+    Route::post('/chat', [AiBaristaController::class, 'chat']);
+    Route::get('/session/{id}/history', [AiBaristaController::class, 'getSessionHistory']);
+    Route::post('/recommendation/purchase', [AiBaristaController::class, 'markPurchased']);
+    Route::get('/recommendation/analytics', [AiBaristaController::class, 'getAnalytics']);
+    Route::get('/copilot/inventory-forecast', [AiBaristaController::class, 'getCopilotForecast']);
+});
 
 // ==========================================
 // PROTECTED ROUTES (Cần đăng nhập / Phân quyền)
