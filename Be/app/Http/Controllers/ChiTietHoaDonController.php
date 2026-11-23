@@ -169,7 +169,8 @@ class ChiTietHoaDonController extends Controller
     public function inPhaChe($id)
     {
         $check = HoaDon::where('id_ban', $id)
-            ->where('tinh_trang', 0)
+            ->whereIn('tinh_trang', [0, 1])
+            ->latest()
             ->first();
         if ($check) {
             ChiTietHoaDon::where('id_hoa_don', $check->id)
@@ -184,7 +185,7 @@ class ChiTietHoaDonController extends Controller
         }
         return response()->json([
             'status'  =>  0,
-            'message' =>  'Không tìm thấy hóa đơn chưa thanh toán cho bàn này!'
+            'message' =>  'Không tìm thấy hóa đơn cho bàn này!'
         ]);
     }
 
@@ -240,13 +241,24 @@ class ChiTietHoaDonController extends Controller
                 'san_phams.ten_san_pham',
                 'chi_tiet_hoa_dons.so_luong',
                 'chi_tiet_hoa_dons.ghi_chu',
+                'chi_tiet_hoa_dons.tuy_chon',
                 'chi_tiet_hoa_dons.id',
                 'chi_tiet_hoa_dons.tinh_trang',
                 'chi_tiet_hoa_dons.created_at',
                 'chi_tiet_hoa_dons.updated_at'
             )
-            ->whereIn('chi_tiet_hoa_dons.tinh_trang', [1, 2])
-            ->where('hoa_dons.tinh_trang', 0)
+            ->where(function($query) {
+                // Món đang chế biến (1): hiển thị cho cả hóa đơn đã thanh toán Pay-First (1) lẫn chưa thanh toán (0)
+                $query->where(function($q) {
+                    $q->where('chi_tiet_hoa_dons.tinh_trang', 1)
+                      ->whereIn('hoa_dons.tinh_trang', [0, 1]);
+                })
+                // Món đã hoàn thành (2): hiển thị các món hoàn thành trong vòng 12 tiếng gần nhất
+                ->orWhere(function($q) {
+                    $q->where('chi_tiet_hoa_dons.tinh_trang', 2)
+                      ->where('chi_tiet_hoa_dons.updated_at', '>=', now()->subHours(12));
+                });
+            })
             ->orderBy('chi_tiet_hoa_dons.created_at', 'asc')
             ->get();
 

@@ -7,6 +7,7 @@ use App\Models\ChiTietHoaDon;
 use App\Models\Ban;
 use App\Models\SanPham;
 use App\Models\KhachHang;
+use App\Models\Voucher;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Str;
@@ -14,19 +15,27 @@ use Illuminate\Support\Str;
 class OrderApiController extends Controller
 {
     /**
-     * Khách quét mã QR tại bàn và tạo đơn hàng (Pay-First)
+     * Khách quét mã QR tại bàn và tạo đơn hàng (Pay-First - UC09, UC15, UC16, UC17, UC18)
      */
     public function createQrOrder(Request $request)
     {
         $id_ban = $request->input('id_ban') ?? $request->id_ban;
         if (!$id_ban && ($request->input('table_code') || $request->table_code)) {
             $tableCode = $request->input('table_code') ?? $request->table_code;
-            // Chuẩn hóa tên bàn ví dụ: 'BAN04', '04', 'Ban 4' -> tìm id bàn
             $ban = Ban::where('ten_ban', 'like', '%' . preg_replace('/[^0-9]/', '', $tableCode) . '%')->first();
             $id_ban = $ban ? $ban->id : 4;
         }
         if (!$id_ban) {
-            $id_ban = 4; // Mặc định bàn 4
+            $id_ban = 4; // Mặc định bàn 4 nếu không chỉ định
+        }
+
+        // Kiểm tra bàn hợp lệ
+        $banCheck = Ban::find($id_ban);
+        if (!$banCheck) {
+            return response()->json([
+                'status'  => 0,
+                'message' => 'Bàn này không tồn tại trong hệ thống!'
+            ], 404);
         }
 
         $items = $request->input('items') ?? $request->json('items') ?? [];
@@ -40,10 +49,16 @@ class OrderApiController extends Controller
             ], 400);
         }
 
+        // Lấy cấu hình giá Size và Topping từ server config/tuychon.php (KHÔNG tin giá client gửi lên)
+        $sizeCfg    = config('tuychon.sizes', []);
+        $daCfg      = config('tuychon.da', []);
+        $duongCfg   = config('tuychon.duong', []);
+        $toppingCfg = config('tuychon.toppings', []);
+
         // Khách hàng mặc định hoặc tạo mới nếu có số điện thoại
         $id_khach_hang = 1; // Khách Vãng Lai
         $customerPhone = $request->input('customer_phone') ?? $request->customer_phone;
-        $customerName = $request->input('customer_name') ?? $request->customer_name;
+        $customerName  = $request->input('customer_name') ?? $request->customer_name;
         $customerEmail = $request->input('customer_email') ?? $request->customer_email;
         if ($customerPhone) {
             $khach = KhachHang::where('so_dien_thoai', $customerPhone)->first();
@@ -51,7 +66,7 @@ class OrderApiController extends Controller
                 $cleanPhone = preg_replace('/[^0-9]/', '', $customerPhone);
                 $email = $customerEmail ?: ('khach_' . $cleanPhone . '@coffeehub.local');
                 $khach = KhachHang::create([
-                    'ho_va_ten'     => $customerName ?: ('Khách QR Bàn ' . $id_ban),
+                    'ho_va_ten'     => $customerName ?: ('Khách QR Bàn ' . $banCheck->ten_ban),
                     'so_dien_thoai' => $customerPhone,
                     'email'         => $email,
                     'tinh_trang'    => 1,
@@ -59,6 +74,11 @@ class OrderApiController extends Controller
             }
             $id_khach_hang = $khach->id;
         }
+
+        // Xác định phương thức thanh toán: 1: Tiền mặt, 2: VietQR động
+        $phuongThucStr = strtoupper($request->input('phuong_thuc') ?? $request->input('payment_method') ?? 'VIETQR');
+        $isCash = in_array($phuongThucStr, ['TIEN_MAT', 'CASH', '1']);
+        $phuongThuc = $isCash ? 1 : 2;
 
         DB::beginTransaction();
         try {
@@ -73,8 +93,8 @@ class OrderApiController extends Controller
                     'tong_tien'              => 0,
                     'tien_truoc_giam'        => 0,
                     'so_tien_giam'           => 0,
-                    'phuong_thuc_thanh_toan' => null,
-                    'tinh_trang'             => 0, // 0: Đang mở
+                    'phuong_thuc_thanh_toan' => $phuongThuc,
+                    'tinh_trang'             => 0, // 0: Chờ xác nhận Pay-First
                     'id_ban'                 => $id_ban,
                     'id_khach_hang'          => $id_khach_hang,
                     'id_phan_cong_ca_lam'    => 1,
@@ -83,55 +103,201 @@ class OrderApiController extends Controller
                 $hoaDon->update([
                     'ma_hoa_don' => 'HD-' . (1000 + $hoaDon->id)
                 ]);
+            } else {
+                $hoaDon->update([
+                    'phuong_thuc_thanh_toan' => $phuongThuc
+                ]);
             }
 
-            // Thêm các món vào chi tiết hóa đơn
+            // Thêm các món vào chi tiết hóa đơn kèm tính toán giá từ Backend
             foreach ($items as $item) {
                 $sp = SanPham::find($item['id_san_pham'] ?? $item['id']);
-                if ($sp) {
-                    $so_luong = (int)($item['so_luong'] ?? $item['quantity'] ?? 1);
-                    $don_gia = $sp->gia_ban;
-                    $ghi_chu = $item['ghi_chu'] ?? $item['note'] ?? null;
+                if (!$sp) continue;
 
-                    ChiTietHoaDon::create([
-                        'id_chi_tiet_cha' => null,
-                        'so_luong'        => $so_luong,
-                        'don_gia'         => $don_gia,
-                        'ghi_chu'         => $ghi_chu,
-                        'tinh_trang'      => 0, // 0: Chưa gửi bếp / Chờ POS duyệt thanh toán
-                        'id_hoa_don'      => $hoaDon->id,
-                        'id_san_pham'     => $sp->id,
-                    ]);
+                $so_luong = max(1, (int)($item['so_luong'] ?? $item['quantity'] ?? 1));
+                $basePrice = (int)$sp->gia_ban;
+
+                // Xử lý tùy chọn (tuy_chon)
+                $rawOption = $item['tuy_chon'] ?? $item['options'] ?? null;
+                if (is_string($rawOption)) {
+                    $rawOption = json_decode($rawOption, true) ?: [];
                 }
+
+                $sizeSnapshot = null;
+                $daSnapshot = null;
+                $duongSnapshot = null;
+                $toppingSnapshots = [];
+                $phuThuSize = 0;
+                $phuThuToppings = 0;
+
+                if (!empty($rawOption)) {
+                    // 1. Size
+                    $szKey = is_array($rawOption['size'] ?? null)
+                        ? ($rawOption['size']['ma'] ?? 'S')
+                        : ($rawOption['size'] ?? 'S');
+                    $szKey = strtoupper($szKey);
+                    if (isset($sizeCfg[$szKey])) {
+                        $phuThuSize = (int)$sizeCfg[$szKey]['gia'];
+                        $sizeSnapshot = [
+                            'ma'  => $szKey,
+                            'ten' => $sizeCfg[$szKey]['ten'],
+                            'gia' => $phuThuSize,
+                        ];
+                    } else {
+                        $sizeSnapshot = ['ma' => 'S', 'ten' => 'Size Nhỏ (S)', 'gia' => 0];
+                    }
+
+                    // 2. Đá
+                    $daKey = is_array($rawOption['da'] ?? null)
+                        ? ($rawOption['da']['ma'] ?? '100%')
+                        : ($rawOption['da'] ?? '100%');
+                    if (isset($daCfg[$daKey])) {
+                        $daSnapshot = [
+                            'ma'  => $daKey,
+                            'ten' => $daCfg[$daKey]['ten'],
+                            'gia' => 0,
+                        ];
+                    } else {
+                        $daSnapshot = ['ma' => '100%', 'ten' => '100% Đá (Bình thường)', 'gia' => 0];
+                    }
+
+                    // 3. Đường
+                    $duongKey = is_array($rawOption['duong'] ?? null)
+                        ? ($rawOption['duong']['ma'] ?? '100%')
+                        : ($rawOption['duong'] ?? '100%');
+                    if (isset($duongCfg[$duongKey])) {
+                        $duongSnapshot = [
+                            'ma'  => $duongKey,
+                            'ten' => $duongCfg[$duongKey]['ten'],
+                            'gia' => 0,
+                        ];
+                    } else {
+                        $duongSnapshot = ['ma' => '100%', 'ten' => '100% Đường (Chuẩn)', 'gia' => 0];
+                    }
+
+                    // 4. Toppings
+                    $reqToppings = $rawOption['toppings'] ?? [];
+                    if (is_array($reqToppings)) {
+                        foreach ($reqToppings as $top) {
+                            $topId = is_array($top) ? ($top['id'] ?? '') : $top;
+                            if (isset($toppingCfg[$topId])) {
+                                $topPrice = (int)$toppingCfg[$topId]['gia'];
+                                $phuThuToppings += $topPrice;
+                                $toppingSnapshots[] = [
+                                    'id'  => $topId,
+                                    'ten' => $toppingCfg[$topId]['ten'],
+                                    'gia' => $topPrice,
+                                ];
+                            }
+                        }
+                    }
+                } else {
+                    $sizeSnapshot  = ['ma' => 'S', 'ten' => 'Size Nhỏ (S)', 'gia' => 0];
+                    $daSnapshot    = ['ma' => '100%', 'ten' => '100% Đá (Bình thường)', 'gia' => 0];
+                    $duongSnapshot = ['ma' => '100%', 'ten' => '100% Đường (Chuẩn)', 'gia' => 0];
+                }
+
+                // Đơn giá tính lại từ server
+                $donGiaTinhLai = $basePrice + $phuThuSize + $phuThuToppings;
+
+                $tuyChonSnapshot = [
+                    'size'     => $sizeSnapshot,
+                    'da'       => $daSnapshot,
+                    'duong'    => $duongSnapshot,
+                    'toppings' => $toppingSnapshots,
+                    'phu_thu'  => $phuThuSize + $phuThuToppings,
+                ];
+
+                // Ghi chú thân thiện người đọc
+                $textParts = [];
+                if ($sizeSnapshot['ma'] !== 'S') $textParts[] = 'Size ' . $sizeSnapshot['ma'];
+                if ($daSnapshot['ma'] !== '100%') $textParts[] = $daSnapshot['ten'];
+                if ($duongSnapshot['ma'] !== '100%') $textParts[] = $duongSnapshot['ten'];
+                if (!empty($toppingSnapshots)) {
+                    $textParts[] = '+ ' . implode(', ', array_column($toppingSnapshots, 'ten'));
+                }
+                $extraText = implode(' • ', $textParts);
+                $userGhiChu = trim($item['ghi_chu'] ?? $item['note'] ?? '');
+                $ghiChuLuu = $userGhiChu ?: null;
+
+                ChiTietHoaDon::create([
+                    'id_chi_tiet_cha' => null,
+                    'so_luong'        => $so_luong,
+                    'don_gia'         => $donGiaTinhLai,
+                    'ghi_chu'         => $ghiChuLuu,
+                    'tuy_chon'        => $tuyChonSnapshot,
+                    'tinh_trang'      => 0, // 0: Chờ duyệt Pay-First
+                    'id_hoa_don'      => $hoaDon->id,
+                    'id_san_pham'     => $sp->id,
+                ]);
             }
 
-            // Tính tổng tiền hóa đơn
-            $tong_tien = ChiTietHoaDon::where('id_hoa_don', $hoaDon->id)
+            // Tính tổng tiền toàn hóa đơn
+            $tong_tien_truoc_giam = ChiTietHoaDon::where('id_hoa_don', $hoaDon->id)
                 ->select(DB::raw('SUM(so_luong * don_gia) as tong'))
                 ->value('tong') ?? 0;
 
+            // Xử lý mã giảm giá Voucher nếu khách gửi kèm (UC18)
+            $soTienGiam = 0;
+            $idVoucher = null;
+            $maVoucher = trim($request->input('ma_voucher') ?? $request->input('voucher_code') ?? '');
+            if ($maVoucher) {
+                $voucher = Voucher::where('ma_voucher', $maVoucher)->first();
+                $now = now();
+                if ($voucher && ($now >= $voucher->thoi_gian_bat_dau && $now <= $voucher->thoi_gian_ket_thuc)) {
+                    if (!$voucher->don_hang_toi_thieu || $tong_tien_truoc_giam >= $voucher->don_hang_toi_thieu) {
+                        if ($voucher->loai_giam == 1) {
+                            $soTienGiam = $tong_tien_truoc_giam * $voucher->so_giam_gia / 100;
+                            if ($voucher->so_tien_toi_da && $soTienGiam > $voucher->so_tien_toi_da) {
+                                $soTienGiam = $voucher->so_tien_toi_da;
+                            }
+                        } else {
+                            $soTienGiam = $voucher->so_giam_gia;
+                        }
+                        $soTienGiam = min($soTienGiam, $tong_tien_truoc_giam);
+                        $idVoucher = $voucher->id;
+                    }
+                }
+            }
+
+            $tongTienSauGiam = max(0, $tong_tien_truoc_giam - $soTienGiam);
+
             $hoaDon->update([
-                'tien_truoc_giam' => $tong_tien,
-                'tong_tien'       => max(0, $tong_tien - ($hoaDon->so_tien_giam ?? 0))
+                'id_voucher'      => $idVoucher,
+                'so_tien_giam'    => $soTienGiam,
+                'tien_truoc_giam' => $tong_tien_truoc_giam,
+                'tong_tien'       => $tongTienSauGiam
             ]);
 
             DB::commit();
 
-            // Link VietQR động thanh toán
+            // Sinh URL VietQR động theo chuẩn Napas 247
+            $mbAccount = env('MB_BANK_ACCOUNT', '06468111');
+            $mbName = env('MB_ACCOUNT_NAME', 'VO MINH THUAN');
             $qr_code_url = sprintf(
-                "https://img.vietqr.io/image/MB-0357288636-compact2.png?amount=%d&addInfo=%s&accountName=COFFEEHUB%%20STORE",
+                "https://img.vietqr.io/image/MB-%s-compact2.png?amount=%d&addInfo=%s&accountName=%s",
+                $mbAccount,
                 $hoaDon->tong_tien,
-                urlencode($hoaDon->ma_hoa_don)
+                urlencode($hoaDon->ma_hoa_don),
+                urlencode($mbName)
             );
 
+            $msg = $isCash
+                ? 'Yêu cầu gọi món và thu tiền mặt tại bàn đã được ghi nhận! Thu ngân sẽ tới bàn phục vụ bạn ngay.'
+                : 'Tạo đơn gọi món QR thành công! Vui lòng quét mã VietQR để thanh toán Pay-First.';
+
             return response()->json([
-                'status'        => 1,
-                'message'       => 'Tạo đơn gọi món QR thành công! Vui lòng thanh toán tại bàn hoặc quầy thu ngân.',
-                'order_id'      => $hoaDon->id,
-                'ma_hoa_don'    => $hoaDon->ma_hoa_don,
-                'tong_tien'     => $hoaDon->tong_tien,
-                'vietqr_url'    => $qr_code_url,
-                'id_ban'        => $id_ban
+                'status'          => 1,
+                'message'         => $msg,
+                'order_id'        => $hoaDon->id,
+                'ma_hoa_don'      => $hoaDon->ma_hoa_don,
+                'tien_truoc_giam' => $hoaDon->tien_truoc_giam,
+                'so_tien_giam'    => $hoaDon->so_tien_giam,
+                'tong_tien'       => $hoaDon->tong_tien,
+                'phuong_thuc'     => $isCash ? 'TIEN_MAT' : 'VIETQR',
+                'vietqr_url'      => $qr_code_url,
+                'id_ban'          => $id_ban,
+                'ten_ban'         => $banCheck->ten_ban,
             ]);
         } catch (\Exception $e) {
             DB::rollBack();
@@ -143,7 +309,7 @@ class OrderApiController extends Controller
     }
 
     /**
-     * Khách hàng kiểm tra trạng thái đơn hàng của mình
+     * Khách hàng kiểm tra trạng thái đơn hàng của mình (UC19)
      */
     public function getOrderStatus($id)
     {
@@ -166,21 +332,35 @@ class OrderApiController extends Controller
                 'chi_tiet_hoa_dons.so_luong',
                 'chi_tiet_hoa_dons.don_gia',
                 'chi_tiet_hoa_dons.ghi_chu',
+                'chi_tiet_hoa_dons.tuy_chon',
                 'chi_tiet_hoa_dons.tinh_trang' // 0: Chờ duyệt, 1: Đang làm, 2: Xong
             )
             ->where('chi_tiet_hoa_dons.id_hoa_don', $id)
             ->get();
 
+        // Xác định bước tiến trình (Timeline step)
+        // 1: Tiếp nhận / Chờ duyệt thanh toán
+        // 2: Thu ngân đã duyệt / Đang pha chế KDS
+        // 3: Pha chế xong / Sẵn sàng phục vụ
+        $allDone = $items->count() > 0 && $items->every(fn($item) => (int)$item->tinh_trang === 2);
+        $anyMaking = $items->some(fn($item) => (int)$item->tinh_trang === 1);
+
+        $step = 1;
+        if ((int)$hoaDon->tinh_trang === 1) {
+            $step = $allDone ? 3 : 2;
+        }
+
         return response()->json([
             'status'     => 1,
             'order'      => $hoaDon,
             'items'      => $items,
+            'step'       => $step,
             'is_paid'    => (int)$hoaDon->tinh_trang === 1
         ]);
     }
 
     /**
-     * Quầy POS thu ngân: Lấy danh sách các đơn hàng QR đang chờ duyệt thanh toán (Pay-First)
+     * Quầy POS thu ngân: Lấy danh sách các đơn hàng QR đang chờ duyệt thanh toán (Pay-First - UC26)
      */
     public function getPendingQrOrders()
     {
@@ -191,6 +371,9 @@ class OrderApiController extends Controller
                 'hoa_dons.id',
                 'hoa_dons.ma_hoa_don',
                 'hoa_dons.tong_tien',
+                'hoa_dons.so_tien_giam',
+                'hoa_dons.tien_truoc_giam',
+                'hoa_dons.phuong_thuc_thanh_toan',
                 'hoa_dons.created_at',
                 'bans.ten_ban',
                 'khach_hangs.ho_va_ten as ten_khach_hang'
@@ -201,7 +384,14 @@ class OrderApiController extends Controller
         foreach ($orders as $order) {
             $order->items = ChiTietHoaDon::join('san_phams', 'chi_tiet_hoa_dons.id_san_pham', '=', 'san_phams.id')
                 ->where('chi_tiet_hoa_dons.id_hoa_don', $order->id)
-                ->select('san_phams.ten_san_pham', 'chi_tiet_hoa_dons.so_luong', 'chi_tiet_hoa_dons.don_gia', 'chi_tiet_hoa_dons.tinh_trang')
+                ->select(
+                    'san_phams.ten_san_pham',
+                    'chi_tiet_hoa_dons.so_luong',
+                    'chi_tiet_hoa_dons.don_gia',
+                    'chi_tiet_hoa_dons.ghi_chu',
+                    'chi_tiet_hoa_dons.tuy_chon',
+                    'chi_tiet_hoa_dons.tinh_trang'
+                )
                 ->get();
         }
 
@@ -212,7 +402,7 @@ class OrderApiController extends Controller
     }
 
     /**
-     * Thu ngân POS duyệt thanh toán Pay-First -> chuyển đơn sang quầy KDS pha chế
+     * Thu ngân POS duyệt thanh toán Pay-First -> chuyển đơn sang quầy KDS pha chế (UC27)
      */
     public function approveOrderPayment(Request $request, $id)
     {
@@ -224,7 +414,7 @@ class OrderApiController extends Controller
             ], 404);
         }
 
-        $phuongThuc = $request->input('payment_method', 2); // 1: Tiền mặt, 2: VietQR / Chuyển khoản
+        $phuongThuc = $request->input('payment_method', 2);
         if ($phuongThuc === 'VIETQR' || $phuongThuc === 'CHUYEN_KHOAN') {
             $phuongThuc = 2;
         } elseif ($phuongThuc === 'TIEN_MAT' || $phuongThuc === 'CASH') {
@@ -251,7 +441,7 @@ class OrderApiController extends Controller
     }
 
     /**
-     * Quầy Barista (KDS): Lấy danh sách hàng đợi pha chế thời gian thực
+     * Quầy Barista (KDS): Lấy danh sách hàng đợi pha chế thời gian thực (UC28)
      */
     public function getKdsQueue()
     {
@@ -264,19 +454,20 @@ class OrderApiController extends Controller
                 'chi_tiet_hoa_dons.id_san_pham',
                 'chi_tiet_hoa_dons.so_luong',
                 'chi_tiet_hoa_dons.ghi_chu',
+                'chi_tiet_hoa_dons.tuy_chon',
                 'chi_tiet_hoa_dons.tinh_trang',
                 'chi_tiet_hoa_dons.created_at',
                 'hoa_dons.ma_hoa_don',
                 'bans.ten_ban',
                 'san_phams.ten_san_pham',
-                'san_phams.kich_thuoc'
+                'san_phams.kich_thuoc',
+                'san_phams.hinh_anh'
             )
-            ->whereIn('chi_tiet_hoa_dons.tinh_trang', [1, 2])
+            ->where('chi_tiet_hoa_dons.tinh_trang', 1) // 1: Đang chờ pha chế
             ->orderBy('chi_tiet_hoa_dons.created_at', 'asc')
             ->get();
 
         foreach ($items as $item) {
-            // Nạp công thức định lượng nguyên liệu (BOM) cho món này
             $item->recipes = \App\Models\CongThucMon::join('nguyen_lieus', 'cong_thuc_mons.id_nguyen_lieu', '=', 'nguyen_lieus.id')
                 ->where('cong_thuc_mons.id_san_pham', $item->id_san_pham)
                 ->select(

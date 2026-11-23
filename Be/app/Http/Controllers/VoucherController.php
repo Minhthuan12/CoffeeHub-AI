@@ -80,6 +80,70 @@ class VoucherController extends Controller
             'message' => 'Cập nhật voucher thành công!'
         ]);
     }
+
+    /**
+     * API công khai cho khách tại bàn kiểm tra voucher (UC18)
+     */
+    public function kiemTraVoucherPublic(Request $request)
+    {
+        $ma_voucher = trim($request->ma_voucher ?? '');
+        $tong_tien = (float)($request->tong_tien ?? 0);
+
+        if (!$ma_voucher) {
+            return response()->json([
+                'status'  => 0,
+                'message' => 'Vui lòng nhập mã giảm giá!'
+            ], 400);
+        }
+
+        $voucher = Voucher::where('ma_voucher', $ma_voucher)->first();
+
+        if (!$voucher) {
+            return response()->json([
+                'status'  => 0,
+                'message' => 'Mã voucher không tồn tại!'
+            ]);
+        }
+
+        $now = now();
+        if (!($now >= $voucher->thoi_gian_bat_dau && $now <= $voucher->thoi_gian_ket_thuc)) {
+            return response()->json([
+                'status'  => 0,
+                'message' => 'Voucher đã hết hạn hoặc chưa đến ngày bắt đầu!'
+            ]);
+        }
+
+        if ($voucher->don_hang_toi_thieu && $tong_tien < $voucher->don_hang_toi_thieu) {
+            return response()->json([
+                'status'  => 0,
+                'message' => 'Đơn hàng tối thiểu ' . number_format($voucher->don_hang_toi_thieu) . 'đ để áp dụng voucher này!'
+            ]);
+        }
+
+        if ($voucher->loai_giam == 1) {
+            $so_tien_giam = $tong_tien * $voucher->so_giam_gia / 100;
+            if ($voucher->so_tien_toi_da && $so_tien_giam > $voucher->so_tien_toi_da) {
+                $so_tien_giam = $voucher->so_tien_toi_da;
+            }
+        } else {
+            $so_tien_giam = $voucher->so_giam_gia;
+        }
+        $so_tien_giam = min($so_tien_giam, $tong_tien);
+
+        return response()->json([
+            'status'          => 1,
+            'loai_giam'       => $voucher->loai_giam,
+            'so_giam_gia'     => $voucher->so_giam_gia,
+            'so_tien_giam'    => $so_tien_giam,
+            'tien_sau_giam'   => max(0, $tong_tien - $so_tien_giam),
+            'voucher'         => [
+                'id'         => $voucher->id,
+                'ma_voucher' => $voucher->ma_voucher,
+            ],
+            'message'         => 'Áp dụng voucher thành công! Giảm ' . number_format($so_tien_giam) . 'đ'
+        ]);
+    }
+
     public function apDungVoucher(Request $request)
     {
         $ma_voucher = $request->ma_voucher;

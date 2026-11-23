@@ -156,6 +156,12 @@ const routes = [
     meta: { layout: 'blank' },
   },
   {
+    path: "/menu",
+    alias: ["/khach-hang/menu", "/order"],
+    component: () => import("../components/KhachHang/Menu/index.vue"),
+    meta: { layout: 'blank' }
+  },
+  {
     path: "/admin/trang-ca-nhan",
     component: () => import("../components/Admin/TrangCaNhan/index.vue"),
     beforeEnter: checkLogin

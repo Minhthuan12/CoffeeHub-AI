@@ -16,11 +16,11 @@ class GiaoDichController extends Controller
     public function getData()
     {
         $payload = [
-            'USERNAME' => '0862296097',
-            'PASSWORD' => 'Trieu@201204',
+            'USERNAME' => env('MB_BANK_ACCOUNT', '06468111'),
+            'PASSWORD' => env('MB_BANK_PASSWORD', 'Vominhthuan1107@@@'),
             'DAY_BEGIN' => Carbon::now()->format('d/m/Y'),
             'DAY_END' => Carbon::now()->format('d/m/Y'),
-            'NUMBER_MB' => '0862296097',
+            'NUMBER_MB' => env('MB_BANK_ACCOUNT', '06468111'),
         ];
 
         $response = Http::post('https://api-mb.midstack.io.vn/api/transactions', $payload);
@@ -44,6 +44,11 @@ class GiaoDichController extends Controller
                         $hoa_don->tinh_trang = 1;
                         $hoa_don->phuong_thuc_thanh_toan = 2;
                         $hoa_don->save();
+
+                        // Pay-First VietQR: Chuyển các món chưa duyệt (0) sang quầy Barista pha chế (1)
+                        ChiTietHoaDon::where('id_hoa_don', $hoa_don->id)
+                            ->where('tinh_trang', 0)
+                            ->update(['tinh_trang' => 1]);
 
                         // Gửi email hóa đơn cho khách hàng sau khi xác nhận chuyển khoản
                         $khachHang = KhachHang::find($hoa_don->id_khach_hang);

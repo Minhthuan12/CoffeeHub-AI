@@ -13,7 +13,13 @@ class ChiTietHoaDon extends Model
         'so_luong',
         'don_gia',
         'ghi_chu',
+        'tuy_chon',
+        'tinh_trang',
         'id_hoa_don',
         'id_san_pham',
+    ];
+
+    protected $casts = [
+        'tuy_chon' => 'array',
     ];
 }

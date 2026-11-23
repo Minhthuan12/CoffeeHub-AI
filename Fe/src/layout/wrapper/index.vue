@@ -396,4 +396,23 @@ body {
 .dropdown-toggle::after {
   display: none !important;
 }
+
+/* Đảm bảo Sidebar cuộn mượt mà không bị tràn màn hình */
+.admin-sidebar {
+  height: 100vh !important;
+  height: 100dvh !important;
+  max-height: 100vh !important;
+  bottom: 0 !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+.sidebar-nav {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+  overscroll-behavior: contain !important;
+  -webkit-overflow-scrolling: touch !important;
+}
 </style>

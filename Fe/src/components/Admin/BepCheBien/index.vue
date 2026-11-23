@@ -21,12 +21,12 @@
                                 <thead class="table-primary">
                                     <tr class="text-center">
                                         <th style="width: 45px;">STT</th>
-                                        <th style="width: 80px;">Bàn</th>
-                                        <th>Tên Món Ăn</th>
-                                        <th style="width: 60px;">SL</th>
-                                        <th style="width: 130px;">Ghi Chú</th>
-                                        <th style="min-width: 175px;">Thời Gian Chờ</th>
-                                        <th style="width: 85px;">Action</th>
+                                        <th style="width: 75px;">Bàn</th>
+                                        <th style="min-width: 170px;">Tên Món Ăn</th>
+                                        <th style="width: 55px;">SL</th>
+                                        <th style="width: 130px; max-width: 140px;">Ghi Chú</th>
+                                        <th style="width: 165px;">Thời Gian Chờ</th>
+                                        <th style="width: 80px;">Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -34,15 +34,21 @@
                                         <tr class="text-center" :class="{ 'table-danger-subtle': getWaitLevel(value.created_at) === 'danger' }">
                                             <th class="align-middle text-center">{{ index + 1 }}</th>
                                             <td class="align-middle fw-bold text-primary">{{ value.ten_ban }}</td>
-                                            <td class="align-middle text-start ps-3">
+                                            <td class="align-middle text-start ps-3" style="max-width: 250px; word-break: break-word; white-space: normal;">
                                                 <b>{{ value.ten_san_pham }}</b>
                                                 <i v-if="getWaitLevel(value.created_at) === 'danger'"
                                                     class="fa-solid fa-triangle-exclamation text-danger ms-1"
                                                     title="Món này đang chờ quá lâu!"></i>
+                                                <!-- Hiển thị tùy chọn dạng Badges/Tags tự động xuống dòng linh hoạt -->
+                                                <div v-if="value.tuy_chon" class="d-flex flex-wrap gap-1 mt-1">
+                                                    <span v-for="b in getBadges(value.tuy_chon)" :key="b.text" class="badge" :class="b.class" style="font-size: 11px; font-weight: 500; padding: 3px 6px;">
+                                                        {{ b.text }}
+                                                    </span>
+                                                </div>
                                             </td>
                                             <td class="align-middle text-primary fw-bold fs-6">{{ value.so_luong }}</td>
-                                            <td class="align-middle text-muted text-start small">
-                                                {{ value.ghi_chu || '-' }}
+                                            <td class="align-middle text-muted text-start small" style="max-width: 140px; word-break: break-word; white-space: normal;">
+                                                {{ formatGhiChu(value) }}
                                             </td>
                                             <!-- Thanh thời gian chờ -->
                                             <td class="align-middle px-3">
@@ -110,7 +116,14 @@
                                         <tr class="text-center">
                                             <th class="align-middle text-center">{{ index + 1 }}</th>
                                             <td class="align-middle fw-bold">{{ value.ten_ban }}</td>
-                                            <td class="align-middle text-start ps-2"><b>{{ value.ten_san_pham }}</b></td>
+                                            <td class="align-middle text-start ps-2" style="max-width: 180px; word-break: break-word; white-space: normal;">
+                                                <b>{{ value.ten_san_pham }}</b>
+                                                <div v-if="value.tuy_chon" class="d-flex flex-wrap gap-1 mt-1">
+                                                    <span v-for="b in getBadges(value.tuy_chon)" :key="b.text" class="badge" :class="b.class" style="font-size: 10px; font-weight: 500; padding: 2px 5px;">
+                                                        {{ b.text }}
+                                                    </span>
+                                                </div>
+                                            </td>
                                             <td class="align-middle fw-bold text-success">{{ value.so_luong }}</td>
                                             <td class="align-middle small text-muted">
                                                 {{ formatTimeOnly(value.updated_at) }}
@@ -136,6 +149,7 @@
 
 <script>
 import axios from 'axios';
+import { formatTuyChonText, getTuyChonBadges } from '../../../config/tuyChon.js';
 export default {
     data() {
         return {
@@ -169,6 +183,23 @@ export default {
         }
     },
     methods: {
+        formatTuyChon(tc) {
+            return formatTuyChonText(tc);
+        },
+        getBadges(tc) {
+            return getTuyChonBadges(tc);
+        },
+        formatGhiChu(item) {
+            if (!item.ghi_chu || item.ghi_chu.trim() === '') return '-';
+            let text = item.ghi_chu.trim();
+            // Loại bỏ phần tùy chọn trong ngoặc đơn nếu có
+            text = text.replace(/\s*\([^)]*(Size|Đá|Đường|Trân châu|Thạch|Cheese)[^)]*\)/gi, '').trim();
+            // Nếu toàn bộ ghi chú chỉ là chuỗi tùy chọn trùng lặp đã hiển thị ở cột Tên Món
+            if (item.tuy_chon && (text.startsWith('Size ') || text.startsWith('+ ') || text.includes(' • '))) {
+                return '-';
+            }
+            return text || '-';
+        },
         bep_che_bien() {
             axios
                 .get('http://127.0.0.1:8000/api/admin/chi-tiet-hoa-don/bep-che-bien', {

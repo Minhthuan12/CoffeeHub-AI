@@ -133,15 +133,22 @@
                             <tbody>
                                 <tr v-for="(val, index) in list_mon_chi_tiet" :key="index">
                                     <td class="small">{{ index + 1 }}</td>
-                                    <td class="text-start small">
+                                    <td class="text-start small" style="max-width: 180px; word-break: break-word; white-space: normal;">
                                         <div class="fw-bold">{{ val.ten_san_pham }}</div>
-                                        <span v-if="val.tinh_trang === 0" class="badge bg-secondary">Chưa gửi</span>
-                                        <span v-else-if="val.tinh_trang === 1" class="badge bg-warning text-dark">Đang
-                                            pha chế</span>
-                                        <span v-else-if="val.tinh_trang === 2" class="badge bg-success"><i
-                                                class="fa-solid fa-check me-1"></i>Đã xong</span>
+                                        <div v-if="val.tuy_chon" class="d-flex flex-wrap gap-1 mt-1">
+                                            <span v-for="b in getBadges(val.tuy_chon)" :key="b.text" class="badge" :class="b.class" style="font-size: 10px; font-weight: 500; padding: 2px 5px;">
+                                                {{ b.text }}
+                                            </span>
+                                        </div>
+                                        <div class="mt-1">
+                                            <span v-if="val.tinh_trang === 0" class="badge bg-secondary">Chưa gửi</span>
+                                            <span v-else-if="val.tinh_trang === 1" class="badge bg-warning text-dark">Đang pha chế</span>
+                                            <span v-else-if="val.tinh_trang === 2" class="badge bg-success"><i class="fa-solid fa-check me-1"></i>Đã xong</span>
+                                        </div>
                                     </td>
-                                    <td class="text-start text-muted small">{{ val.ghi_chu || '-' }}</td>
+                                    <td class="text-start text-muted small" style="max-width: 120px; word-break: break-word; white-space: normal;">
+                                        {{ formatGhiChu(val) }}
+                                    </td>
                                     <td class="fw-bold">{{ val.so_luong }}</td>
                                     <td class="text-end fw-bold small">{{ formatVND(val.don_gia) }}đ</td>
                                     <td class="text-end text-primary fw-bold small">{{ formatVND(val.so_luong *
@@ -504,6 +511,7 @@
 
 <script>
 import axios from 'axios';
+import { formatTuyChonText, getTuyChonBadges } from '../../../config/tuyChon.js';
 export default {
     data() {
         return {
@@ -634,6 +642,21 @@ export default {
         },
     },
     methods: {
+        formatTuyChon(tc) {
+            return formatTuyChonText(tc);
+        },
+        getBadges(tc) {
+            return getTuyChonBadges(tc);
+        },
+        formatGhiChu(item) {
+            if (!item.ghi_chu || item.ghi_chu.trim() === '') return '-';
+            let text = item.ghi_chu.trim();
+            text = text.replace(/\s*\([^)]*(Size|Đá|Đường|Trân châu|Thạch|Cheese)[^)]*\)/gi, '').trim();
+            if (item.tuy_chon && (text.startsWith('Size ') || text.startsWith('+ ') || text.includes(' • '))) {
+                return '-';
+            }
+            return text || '-';
+        },
         reloadChiTietMon(id) {
             if (!id) return;
             axios

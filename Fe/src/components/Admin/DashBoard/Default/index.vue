@@ -263,10 +263,10 @@
                                 <span class="text-muted small">So sánh doanh thu thực thu các ngày trong tuần</span>
                             </div>
                             <div class="d-flex align-items-center gap-2">
-                                <span class="badge bg-amber-50 text-amber-800 border border-amber-200 rounded-pill px-3 py-1.5 fw-semibold small">
-                                    <i class="fa-solid fa-calendar-week me-1"></i>{{ text_7_ngay }}
+                                <span class="badge bg-amber-100 text-amber-800 border border-amber-300 rounded-pill px-3 py-1.5 fw-semibold small">
+                                    <i class="fa-solid fa-calendar-week me-1 text-amber-600"></i>{{ text_7_ngay }}
                                 </span>
-                                <router-link to="/admin/thong-ke/doanh-thu-theo-ngay" class="btn btn-sm btn-outline-warning rounded-pill px-3 fw-semibold">
+                                <router-link to="/admin/thong-ke/doanh-thu-theo-ngay" class="btn btn-sm btn-outline-amber rounded-pill px-3 fw-semibold">
                                     Chi tiết <i class="fa-solid fa-arrow-right ms-1"></i>
                                 </router-link>
                             </div>
@@ -301,8 +301,8 @@
                                 </h6>
                                 <span class="text-muted small">Tỷ trọng cơ cấu món bán ra</span>
                             </div>
-                            <router-link to="/admin/thong-ke/doanh-thu-theo-danh-muc" class="btn btn-sm btn-outline-rose rounded-pill px-2.5 py-1 text-xs fw-semibold">
-                                Chi tiết
+                            <router-link to="/admin/thong-ke/doanh-thu-theo-danh-muc" class="btn btn-sm btn-outline-amber rounded-pill px-3 py-1 text-xs fw-semibold">
+                                Chi tiết <i class="fa-solid fa-arrow-right ms-1"></i>
                             </router-link>
                         </div>
                     </div>
@@ -372,7 +372,7 @@
                                     </td>
                                     <td class="fw-bold text-emerald-600">{{ formatVND(value.tong_tien) }}</td>
                                     <td class="text-center">
-                                        <span class="badge rounded-pill px-2.5 py-1 text-xs" :class="value.tinh_trang >= 1 ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'">
+                                        <span class="badge rounded-pill px-2.5 py-1 text-xs" :class="value.tinh_trang >= 1 ? 'badge-status-paid' : 'badge-status-pending'">
                                             <i :class="value.tinh_trang >= 1 ? 'fa-solid fa-check me-1' : 'fa-solid fa-clock me-1'"></i>
                                             {{ value.tinh_trang >= 1 ? 'Đã Thanh Toán' : 'Chờ Thanh Toán' }}
                                         </span>
@@ -415,7 +415,7 @@
                                 <tr v-for="(value, index) in lich_ca_lam_hom_nay.slice(0, 5)" :key="index">
                                     <td>
                                         <div class="d-flex align-items-center gap-2">
-                                            <div class="rounded-circle bg-amber-100 text-amber-800 fw-bold d-flex align-items-center justify-content-center" style="width: 32px; height: 32px; font-size: 11px;">
+                                            <div class="rounded-circle bg-amber-100 text-amber-800 fw-bold d-flex align-items-center justify-content-center border border-amber-300" style="width: 32px; height: 32px; font-size: 11px;">
                                                 {{ getInitial(value.ho_va_ten) }}
                                             </div>
                                             <span class="fw-semibold text-dark text-truncate" style="max-width: 110px;">{{ value.ho_va_ten }}</span>
@@ -428,7 +428,7 @@
                                     </td>
                                     <td class="text-muted small">{{ value.ten_ca || 'Ca Sáng' }}</td>
                                     <td class="text-end">
-                                        <span class="badge px-2 py-1 rounded-pill text-xs" :class="value.tinh_trang == 1 ? 'bg-emerald-100 text-emerald-800' : 'bg-slate-100 text-slate-600'">
+                                        <span class="badge px-2.5 py-1 rounded-pill text-xs" :class="value.tinh_trang == 1 ? 'badge-status-paid' : 'badge-status-off'">
                                             {{ value.tinh_trang == 1 ? 'Đang làm' : 'Đã nghỉ' }}
                                         </span>
                                     </td>
@@ -836,6 +836,37 @@ export default {
 
 .text-xs {
     font-size: 0.75rem;
+}
+
+/* Status Badges with High Contrast in Light Theme */
+.badge-status-paid {
+    background-color: #ecfdf5 !important;
+    color: #047857 !important;
+    border: 1px solid #a7f3d0 !important;
+    font-weight: 600 !important;
+}
+.badge-status-pending {
+    background-color: #fffbeb !important;
+    color: #b45309 !important;
+    border: 1px solid #fde68a !important;
+    font-weight: 600 !important;
+}
+.badge-status-off {
+    background-color: #f1f5f9 !important;
+    color: #334155 !important;
+    border: 1px solid #cbd5e1 !important;
+    font-weight: 600 !important;
+}
+.btn-outline-amber {
+    color: #92400e !important;
+    border: 1px solid #d97706 !important;
+    background-color: rgba(245, 158, 11, 0.08) !important;
+    transition: all 0.2s ease !important;
+}
+.btn-outline-amber:hover {
+    background-color: #d97706 !important;
+    color: #ffffff !important;
+    border-color: #d97706 !important;
 }
 
 @keyframes fadeIn {

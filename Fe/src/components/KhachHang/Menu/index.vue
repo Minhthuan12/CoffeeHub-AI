@@ -1,2266 +1,1977 @@
 ﻿<template>
-    <div class="ch-app" ref="appRoot">
-        <!-- âœ¨ Ambient Floating Particles -->
-        <div class="ch-particles" aria-hidden="true">
-            <span v-for="n in 18" :key="n" class="ch-particle" :style="particleStyle(n)"></span>
+  <div class="ch-customer-app">
+    <!-- TOP HEADER (LIGHT GLASSMORPHISM) -->
+    <header class="ch-top-header">
+      <div class="container-fluid max-w-app d-flex justify-content-between align-items-center py-2.5 px-3">
+        <div class="d-flex align-items-center gap-2.5">
+          <div class="ch-logo-badge shadow-xs">
+            <i class="fa-solid fa-mug-hot text-amber"></i>
+          </div>
+          <div>
+            <h1 class="ch-brand-title mb-0">Coffee<span class="text-amber">Hub</span></h1>
+            <div class="d-flex align-items-center gap-1.5 mt-0.5" v-if="currentTable">
+              <span class="ch-table-live-dot"></span>
+              <small class="ch-brand-sub fw-semibold text-dark">{{ currentTable.ten_ban }}</small>
+            </div>
+            <small class="ch-brand-sub text-danger fw-semibold" v-else>
+              <i class="fa-solid fa-triangle-exclamation me-1"></i>Chưa định danh bàn
+            </small>
+          </div>
         </div>
 
-        <!-- âœ¨ Radial Glow Blob -->
-        <div class="ch-glow-blob ch-glow-1"></div>
-        <div class="ch-glow-blob ch-glow-2"></div>
+        <div class="d-flex align-items-center gap-2">
+          <!-- Active order tracking pill -->
+          <button
+            v-if="cartStore.activeOrderId"
+            class="btn btn-sm btn-outline-amber rounded-pill px-2.5 py-1 tracking-pill pulse-amber shadow-xs"
+            @click="showTrackingModal = true"
+          >
+            <i class="fa-solid fa-clock-rotate-left me-1"></i>
+            <span class="d-none d-sm-inline">Tiến độ</span> #{{ cartStore.activeOrderId }}
+          </button>
 
-        <!-- ======= STICKY NAVBAR ======= -->
-        <nav class="ch-navbar" :class="{ 'ch-navbar--scrolled': scrolled }">
-            <div class="ch-navbar__inner">
-                <!-- Brand -->
-                <div class="ch-brand">
-                    <div class="ch-brand__icon">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M17 8h1a4 4 0 0 1 0 8h-1"/>
-                            <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/>
-                            <line x1="6" y1="2" x2="6" y2="4"/>
-                            <line x1="10" y1="2" x2="10" y2="4"/>
-                            <line x1="14" y1="2" x2="14" y2="4"/>
-                        </svg>
-                    </div>
-                    <div class="ch-brand__text">
-                        <span class="ch-brand__name">Coffee<span class="ch-brand__accent">Hub</span></span>
-                        <span class="ch-brand__tagline">Est. 2026 Â· Gourmet</span>
-                    </div>
-                </div>
+          <!-- Cart button -->
+          <button class="btn btn-amber rounded-pill px-3 py-1.5 position-relative shadow-sm ch-cart-btn" @click="showCartDrawer = true">
+            <i class="fa-solid fa-bag-shopping me-1.5"></i>
+            <span class="fw-bold">{{ formatVND(cartStore.finalTotal) }}</span>
+            <span
+              v-if="cartStore.totalCount > 0"
+              class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger border border-white shadow-xs ch-badge-bounce"
+            >
+              {{ cartStore.totalCount }}
+            </span>
+          </button>
+        </div>
+      </div>
+    </header>
 
-                <!-- Search bar (center, desktop) -->
-                <div class="ch-search" :class="{ 'ch-search--active': searchFocused }">
-                    <i class="fa-solid fa-magnifying-glass ch-search__icon"></i>
-                    <input
-                        v-model="searchKey"
-                        type="text"
-                        class="ch-search__input"
-                        placeholder="TĂ¬m tĂªn mĂ³n, cĂ  phĂª, trĂ ..."
-                        @focus="searchFocused = true"
-                        @blur="searchFocused = false"
-                    />
-                    <button v-if="searchKey" @click="searchKey = ''" class="ch-search__clear" aria-label="XoĂ¡ tĂ¬m kiáº¿m">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-                </div>
+    <!-- FLOATING AI BARISTA BUTTON -->
+    <button class="ch-floating-ai-btn shadow-lg" @click="showAiModal = true" title="Hỏi Trợ lý AI Barista">
+      <div class="ai-sparkle-ring"></div>
+      <i class="fa-solid fa-wand-magic-sparkles"></i>
+      <span class="ai-btn-label d-none d-md-inline ms-1">AI Barista</span>
+    </button>
 
-                <!-- Right actions -->
-                <div class="ch-nav-actions">
-                    <div class="ch-view-toggle">
-                        <button
-                            @click="viewMode = 'grid'"
-                            class="ch-view-btn"
-                            :class="{ active: viewMode === 'grid' }"
-                            title="Dáº¡ng lÆ°á»›i"
-                        >
-                            <i class="fa-solid fa-border-all"></i>
-                        </button>
-                        <button
-                            @click="viewMode = 'book'"
-                            class="ch-view-btn"
-                            :class="{ active: viewMode === 'book' }"
-                            title="Dáº¡ng menu sĂ¡ch"
-                        >
-                            <i class="fa-solid fa-book-open"></i>
-                        </button>
-                    </div>
-                    <div class="ch-badge-info">
-                        <i class="fa-solid fa-clock-rotate-left"></i>
-                        <span>07:00 â€“ 22:30</span>
-                    </div>
-                </div>
+    <!-- MAIN BODY -->
+    <main class="container-fluid max-w-app py-3 px-3">
+      <!-- ERROR ALERT IF TABLE IS INVALID -->
+      <div v-if="!currentTable && !loadingTable" class="alert alert-warning border-warning shadow-sm rounded-4 mb-4 p-3">
+        <div class="d-flex align-items-start gap-3">
+          <i class="fa-solid fa-circle-exclamation fs-3 text-warning mt-1"></i>
+          <div class="flex-grow-1">
+            <h6 class="fw-bold mb-1">Bạn chưa quét mã QR bàn hợp lệ!</h6>
+            <p class="small text-muted mb-2">
+              Để hệ thống tự động ghi nhận món về đúng vị trí bàn của bạn, vui lòng quét mã QR đặt tại mặt bàn hoặc chọn nhanh bàn bên dưới để thử nghiệm:
+            </p>
+            <div class="d-flex flex-wrap gap-2">
+              <button
+                v-for="b in availableTables.slice(0, 8)"
+                :key="b.id"
+                class="btn btn-sm btn-outline-dark rounded-pill"
+                @click="selectTable(b)"
+              >
+                {{ b.ten_ban }}
+              </button>
             </div>
-        </nav>
+          </div>
+        </div>
+      </div>
 
-        <!-- ======= HERO SECTION ======= -->
-        <section class="ch-hero">
-            <div class="ch-hero__content">
-                <div class="ch-hero__label">
-                    <span class="ch-pulsedot"></span>
-                    Thá»±c ÄÆ¡n HĂ´m Nay
-                </div>
-                <h1 class="ch-hero__title">
-                    Tinh Hoa <span class="ch-gradient-text">CĂ  PhĂª</span><br>Viá»‡t Nam
-                </h1>
-                <p class="ch-hero__sub">
-                    KhĂ¡m phĂ¡ bá»™ sÆ°u táº­p {{ products.length }} mĂ³n Ä‘áº·c sáº¯c â€” cĂ  phĂª rang xay, trĂ  trĂ¡i cĂ¢y nhiá»‡t Ä‘á»›i,
-                    Ä‘Ă¡ xay Matcha vĂ  bĂ¡nh ngá»t nÆ°á»›ng tÆ°Æ¡i má»—i ngĂ y.
+      <!-- ACTIVE ORDER QUICK BANNER (LIGHT & CLEAN) -->
+      <div v-if="cartStore.activeOrderId" class="ch-active-banner p-3 mb-4 rounded-4 shadow-sm animate__animated animate__fadeIn">
+        <div class="d-flex justify-content-between align-items-center flex-wrap gap-2">
+          <div class="d-flex align-items-center gap-3">
+            <div class="ch-active-icon-box shadow-xs">
+              <i class="fa-solid fa-fire-burner text-amber fs-5"></i>
+            </div>
+            <div>
+              <div class="d-flex align-items-center gap-2 mb-1">
+                <span class="badge bg-success-subtle text-success border border-success-subtle rounded-pill px-2 py-0.5 fw-bold">
+                  <span class="live-dot-green me-1"></span> Đang xử lý Pay-First
+                </span>
+                <span class="small fw-bold text-dark">Đơn #{{ cartStore.activeOrderId }}</span>
+              </div>
+              <small class="text-muted d-block">Barista đang chuẩn bị đồ uống, bấm để xem KDS realtime</small>
+            </div>
+          </div>
+          <button class="btn btn-sm btn-amber rounded-pill px-3 py-1.5 fw-bold shadow-xs" @click="showTrackingModal = true">
+            Xem tiến độ <i class="fa-solid fa-chevron-right ms-1"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- HERO BANNER & AI TEASER (BRIGHT, SUNNY LUXURY STYLE) -->
+      <div class="ch-hero-card p-3 p-md-4 rounded-4 mb-4 shadow-sm position-relative overflow-hidden animate__animated animate__fadeIn">
+        <div class="position-relative z-1">
+          <div class="d-flex align-items-center gap-2 mb-2">
+            <span class="badge bg-amber-subtle text-amber border border-amber-subtle px-2.5 py-1 rounded-pill fw-bold">
+              <i class="fa-solid fa-wand-magic-sparkles me-1 text-amber"></i>AI Barista cá nhân hóa
+            </span>
+            <span class="small text-muted fw-semibold">Sẵn sàng tư vấn chuẩn vị 24/7</span>
+          </div>
+          <h2 class="ch-hero-title mb-2">Hôm nay bạn muốn thưởng thức hương vị gì?</h2>
+          <p class="ch-hero-desc text-muted mb-3 small">
+            Trò chuyện với AI Barista để nhận tư vấn đồ uống chuẩn gu theo tâm trạng và thời tiết hiện tại.
+          </p>
+          <div class="d-flex flex-wrap gap-2">
+            <button class="btn btn-hero-chip btn-sm rounded-pill px-3 py-1.5 fw-semibold shadow-xs" @click="openAiWithPrompt('Trời nắng nóng nên uống gì giải nhiệt?')">
+              ☀️ Nắng nóng giải nhiệt
+            </button>
+            <button class="btn btn-hero-chip btn-sm rounded-pill px-3 py-1.5 fw-semibold shadow-xs" @click="openAiWithPrompt('Tư vấn cà phê kem béo ít ngọt')">
+              ☕ Cà phê kem béo
+            </button>
+            <button class="btn btn-hero-chip btn-sm rounded-pill px-3 py-1.5 fw-semibold shadow-xs" @click="openAiWithPrompt('Trà trái cây thanh mát không quá ngọt')">
+              🍓 Trà trái cây tươi
+            </button>
+          </div>
+        </div>
+        <div class="ch-hero-art">
+          <i class="fa-solid fa-mug-saucer"></i>
+        </div>
+      </div>
+
+      <!-- SEARCH & FILTER BAR -->
+      <div class="ch-search-bar mb-3">
+        <div class="input-group bg-white rounded-pill shadow-sm border p-1">
+          <span class="input-group-text bg-transparent border-0 text-muted ps-3">
+            <i class="fa-solid fa-magnifying-glass"></i>
+          </span>
+          <input
+            type="text"
+            class="form-control border-0 bg-transparent shadow-none"
+            placeholder="Tìm cà phê, trà sữa, đá xay, bánh ngọt..."
+            v-model="searchKeyword"
+          />
+          <button v-if="searchKeyword" class="btn btn-link text-muted pe-3" @click="searchKeyword = ''">
+            <i class="fa-solid fa-xmark"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- CATEGORY TABS -->
+      <div class="ch-cat-nav mb-4">
+        <div class="d-flex gap-2 overflow-auto pb-2 scrollbar-none">
+          <button
+            class="btn btn-sm rounded-pill px-3 cat-pill"
+            :class="selectedCatId === 0 ? 'btn-amber text-dark fw-bold' : 'btn-light border text-secondary'"
+            @click="selectedCatId = 0"
+          >
+            Tất cả ({{ products.length }})
+          </button>
+          <button
+            v-for="cat in categories"
+            :key="cat.id"
+            class="btn btn-sm rounded-pill px-3 cat-pill text-nowrap"
+            :class="selectedCatId === cat.id ? 'btn-amber text-dark fw-bold' : 'btn-light border text-secondary'"
+            @click="selectedCatId = cat.id"
+          >
+            {{ cat.ten_danh_muc }}
+          </button>
+        </div>
+      </div>
+
+      <!-- PRODUCT GRID -->
+      <div v-if="loadingProducts" class="text-center py-5">
+        <div class="spinner-border text-amber" role="status"></div>
+        <p class="text-muted small mt-2">Đang tải thực đơn CoffeeHub...</p>
+      </div>
+
+      <div v-else-if="filteredProducts.length === 0" class="text-center py-5 bg-white rounded-4 border">
+        <i class="fa-solid fa-mug-saucer fs-1 text-muted mb-3 opacity-50"></i>
+        <h6 class="text-muted fw-bold">Không tìm thấy món phù hợp</h6>
+        <p class="small text-muted mb-3">Vui lòng thử từ khóa khác hoặc chuyển danh mục.</p>
+        <button class="btn btn-sm btn-outline-dark rounded-pill" @click="searchKeyword = ''; selectedCatId = 0">
+          Xem tất cả món
+        </button>
+      </div>
+
+      <div v-else class="row g-3">
+        <div
+          v-for="(p, pIdx) in filteredProducts"
+          :key="p.id"
+          class="col-6 col-md-4 col-lg-3 animate__animated animate__fadeInUp"
+          :style="{ animationDelay: `${(pIdx % 8) * 0.05}s` }"
+        >
+          <div class="card h-100 ch-product-card rounded-4 border-0 shadow-sm overflow-hidden d-flex flex-column">
+            <!-- Image wrap -->
+            <div class="position-relative ch-card-img-wrap" @click="openCustomizeModal(p)">
+              <img
+                :src="p.hinh_anh || defaultProductImg"
+                :alt="p.ten_san_pham"
+                class="card-img-top ch-product-img"
+                loading="lazy"
+                @error="onImgError"
+              />
+              <span class="badge bg-white bg-opacity-90 text-dark position-absolute bottom-0 start-0 m-2 rounded-pill px-2.5 py-1 small fw-semibold shadow-xs border">
+                Size {{ p.kich_thuoc || 'M' }}
+              </span>
+            </div>
+
+            <!-- Content -->
+            <div class="card-body p-2.5 p-sm-3 d-flex flex-column justify-content-between flex-grow-1">
+              <div>
+                <h6 class="card-title fw-bold mb-1 ch-product-title" :title="p.ten_san_pham">
+                  {{ p.ten_san_pham }}
+                </h6>
+                <p class="card-text text-muted small mb-2 ch-product-desc">
+                  {{ p.mo_ta || 'Hương vị thơm ngon hảo hạng từ hạt cà phê nguyên chất và nguyên liệu cao cấp.' }}
                 </p>
-                <div class="ch-hero__stats">
-                    <div class="ch-stat" v-for="(s, i) in heroStats" :key="i">
-                        <span class="ch-stat__num">{{ s.value }}</span>
-                        <span class="ch-stat__label">{{ s.label }}</span>
-                    </div>
+              </div>
+
+              <div class="d-flex justify-content-between align-items-center mt-2 pt-2 border-top">
+                <div>
+                  <span class="text-muted smaller d-block">Giá từ</span>
+                  <span class="fw-bold text-amber fs-6">
+                    {{ formatVND(p.gia_ban) }}
+                  </span>
                 </div>
-                <button @click="scrollToMenu" class="ch-hero__cta">
-                    Xem Thá»±c ÄÆ¡n
-                    <i class="fa-solid fa-arrow-down"></i>
+                <button
+                  class="btn btn-amber btn-sm rounded-circle ch-add-btn shadow-sm"
+                  @click="openCustomizeModal(p)"
+                  title="Tùy chỉnh & Thêm vào giỏ"
+                >
+                  <i class="fa-solid fa-plus"></i>
                 </button>
+              </div>
             </div>
-            <div class="ch-hero__visual">
-                <div class="ch-hero__ring ch-hero__ring--outer"></div>
-                <div class="ch-hero__ring ch-hero__ring--middle"></div>
-                <div class="ch-hero__ring ch-hero__ring--inner"></div>
-                <div class="ch-hero__emblem">
-                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                        <path d="M17 8h1a4 4 0 0 1 0 8h-1"/>
-                        <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/>
-                        <line x1="6" y1="2" x2="6" y2="4"/>
-                        <line x1="10" y1="2" x2="10" y2="4"/>
-                        <line x1="14" y1="2" x2="14" y2="4"/>
-                    </svg>
-                </div>
-                <!-- Floating badges -->
-                <div class="ch-float-badge ch-float-badge--1">
-                    <i class="fa-solid fa-star"></i> Premium
-                </div>
-                <div class="ch-float-badge ch-float-badge--2">
-                    <i class="fa-solid fa-leaf"></i> Fresh
-                </div>
-                <div class="ch-float-badge ch-float-badge--3">
-                    <i class="fa-solid fa-fire"></i> Hot
-                </div>
-            </div>
-        </section>
+          </div>
+        </div>
+      </div>
+    </main>
 
-        <!-- ======= CATEGORY FILTER STRIP ======= -->
-        <section class="ch-filter" ref="menuSection">
-            <div class="ch-filter__inner">
-                <div class="ch-filter__scroll">
-                    <button
-                        @click="selectedCategory = 0"
-                        class="ch-filter-btn"
-                        :class="{ active: selectedCategory === 0 }"
-                    >
-                        <i class="fa-solid fa-border-all"></i>
-                        Táº¥t Cáº£
-                        <span class="ch-filter-count">{{ products.length }}</span>
-                    </button>
-                    <button
-                        v-for="cat in categories"
-                        :key="cat.id"
-                        @click="selectedCategory = cat.id"
-                        class="ch-filter-btn"
-                        :class="{ active: selectedCategory === cat.id }"
-                    >
-                        <i :class="getCategoryIcon(cat.ten_danh_muc)"></i>
-                        {{ cat.ten_danh_muc }}
-                        <span class="ch-filter-count">{{ countByCategory(cat.id) }}</span>
-                    </button>
-                </div>
-                <div class="ch-filter__result-info">
-                    <span>Hiá»ƒn thá»‹ <b>{{ filteredProducts.length }}</b> mĂ³n</span>
-                    <span v-if="searchKey" class="ch-filter__search-tag">
-                        "{{ searchKey }}"
-                        <button @click="searchKey = ''" class="ch-filter__clear-tag"><i class="fa-solid fa-xmark"></i></button>
-                    </span>
-                </div>
+    <!-- ======================================================== -->
+    <!-- MODAL 1: TÙY CHỈNH SIZE, ĐÁ, ĐƯỜNG, TOPPING (UC12)        -->
+    <!-- ======================================================== -->
+    <div
+      v-if="showCustomModal && customizingProduct"
+      class="ch-modal-backdrop"
+      @click.self="showCustomModal = false"
+    >
+      <div class="ch-modal-sheet">
+        <div class="ch-sheet-header p-3 border-bottom d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center gap-2">
+            <img
+              :src="customizingProduct.hinh_anh || defaultProductImg"
+              class="rounded-3"
+              style="width: 46px; height: 46px; object-fit: cover;"
+              @error="onImgError"
+            />
+            <div>
+              <h6 class="fw-bold mb-0">{{ customizingProduct.ten_san_pham }}</h6>
+              <small class="text-amber fw-bold">{{ formatVND(customUnitPrice) }} / ly</small>
             </div>
-        </section>
+          </div>
+          <button class="btn-close" @click="showCustomModal = false"></button>
+        </div>
 
-        <!-- ======= GRID VIEW ======= -->
-        <main v-if="viewMode === 'grid'" class="ch-grid-section">
-            <!-- Empty state -->
-            <div v-if="filteredProducts.length === 0" class="ch-empty">
-                <div class="ch-empty__icon">
-                    <i class="fa-solid fa-mug-saucer"></i>
-                </div>
-                <h3 class="ch-empty__title">KhĂ´ng tĂ¬m tháº¥y mĂ³n phĂ¹ há»£p</h3>
-                <p class="ch-empty__sub">HĂ£y thá»­ tĂ¬m tĂªn khĂ¡c hoáº·c chá»n láº¡i danh má»¥c.</p>
-                <button @click="searchKey = ''; selectedCategory = 0" class="ch-btn-primary">
-                    Xem Táº¥t Cáº£ MĂ³n
-                </button>
-            </div>
-
-            <!-- Product Grid -->
-            <div v-else class="ch-grid">
+        <div class="ch-sheet-body p-3 overflow-auto" style="max-height: 65vh;">
+          <!-- CHỌN SIZE -->
+          <div class="mb-3">
+            <label class="form-label fw-bold small text-uppercase text-muted mb-2">
+              1. Chọn kích thước (Size)
+            </label>
+            <div class="row g-2">
+              <div v-for="sz in SIZES" :key="sz.ma" class="col-4">
                 <div
-                    v-for="(item, idx) in filteredProducts"
-                    :key="item.id"
-                    class="ch-card"
-                    :style="{ '--delay': idx * 0.05 + 's' }"
-                    @click="openModal(item)"
+                  class="ch-option-card p-2.5 rounded-3 text-center border cursor-pointer"
+                  :class="selectedSize.ma === sz.ma ? 'border-amber bg-amber-light active' : 'bg-light'"
+                  @click="selectedSize = sz"
                 >
-                    <!-- Image wrap -->
-                    <div class="ch-card__img-wrap">
-                        <img
-                            :src="item.hinh_anh || defaultImage"
-                            :alt="item.ten_san_pham"
-                            class="ch-card__img"
-                            @error="onImgError"
-                            loading="lazy"
-                        />
-                        <div class="ch-card__img-overlay"></div>
-
-                        <!-- Top badges -->
-                        <div class="ch-card__badges">
-                            <span class="ch-badge ch-badge--cat">{{ getCategoryName(item.id_danh_muc) }}</span>
-                        </div>
-                        <div class="ch-card__size-badge">
-                            <span class="ch-badge ch-badge--size">{{ item.kich_thuoc || 'M' }}</span>
-                        </div>
-
-                        <!-- Quick view overlay -->
-                        <div class="ch-card__hover-action">
-                            <span class="ch-card__eye-btn">
-                                <i class="fa-solid fa-eye"></i>
-                                Xem Chi Tiáº¿t
-                            </span>
-                        </div>
-                    </div>
-
-                    <!-- Card body -->
-                    <div class="ch-card__body">
-                        <h3 class="ch-card__name">{{ item.ten_san_pham }}</h3>
-                        <p class="ch-card__desc">
-                            {{ item.mo_ta || 'NguyĂªn liá»‡u tÆ°Æ¡i ngon pha cháº¿ thá»§ cĂ´ng má»—i ngĂ y bá»Ÿi barista cá»§a chĂºng tĂ´i.' }}
-                        </p>
-                        <div class="ch-card__footer">
-                            <div class="ch-card__price">
-                                <span class="ch-card__price-label">GiĂ¡</span>
-                                <span class="ch-card__price-value">{{ formatVND(item.gia_ban) }}<small>Ä‘</small></span>
-                            </div>
-                            <div class="ch-card__cta-wrap">
-                                <button class="ch-card__cta" @click.stop="openModal(item)">
-                                    Chi Tiáº¿t <i class="fa-solid fa-arrow-right-long"></i>
-                                </button>
-                            </div>
-                        </div>
-                    </div>
+                  <div class="fw-bold small">{{ sz.ten }}</div>
+                  <div class="text-muted smaller">{{ sz.gia > 0 ? `+${formatVND(sz.gia)}` : 'Gốc' }}</div>
                 </div>
+              </div>
             </div>
-        </main>
+          </div>
 
-        <!-- ======= BOOK VIEW ======= -->
-        <main v-else class="ch-book-section">
-            <!-- Book Nav Controls -->
-            <div class="ch-book-controls">
-                <button @click="prevSpread" :disabled="currentSpread === 0" class="ch-book-nav-btn">
-                    <i class="fa-solid fa-chevron-left"></i>
-                </button>
-                <div class="ch-book-page-info">
-                    <span class="ch-book-page-title">
-                        {{ currentSpread === 0 ? 'âœ¦ Trang BĂ¬a' : getSpreadCategoryTitle(currentSpread) }}
-                    </span>
-                    <span class="ch-book-page-num">
-                        {{ currentSpread === 0 ? 'BĂ¬a' : (currentSpread * 2 - 1) + ' â€“ ' + (currentSpread * 2) }} / {{ maxSpreads * 2 }}
-                    </span>
-                </div>
-                <button @click="nextSpread" :disabled="currentSpread >= maxSpreads" class="ch-book-nav-btn">
-                    <i class="fa-solid fa-chevron-right"></i>
-                </button>
+          <!-- CHỌN MỨC ĐÁ -->
+          <div class="mb-3">
+            <label class="form-label fw-bold small text-uppercase text-muted mb-2">
+              2. Lượng đá
+            </label>
+            <div class="d-flex flex-wrap gap-2">
+              <button
+                v-for="d in DA_OPTIONS"
+                :key="d.ma"
+                type="button"
+                class="btn btn-sm rounded-pill"
+                :class="selectedDa.ma === d.ma ? 'btn-dark' : 'btn-outline-secondary'"
+                @click="selectedDa = d"
+              >
+                {{ d.ten }}
+              </button>
             </div>
+          </div>
 
-            <!-- THE GRAND BOOK -->
-            <div class="ch-book" :class="{ 'ch-book--flip': isFlipping }">
-                <!-- Spine -->
-                <div class="ch-book__spine"></div>
-                <div class="ch-book__stitch"></div>
-
-                <!-- Binding rings -->
-                <div class="ch-book__rings">
-                    <div v-for="n in 9" :key="n" class="ch-book__ring"></div>
-                </div>
-
-                <!-- Edge click triggers -->
-                <div v-if="currentSpread > 0" class="ch-book__edge ch-book__edge--left" @click="prevSpread">
-                    <i class="fa-solid fa-chevron-left"></i>
-                </div>
-                <div v-if="currentSpread < maxSpreads" class="ch-book__edge ch-book__edge--right" @click="nextSpread">
-                    <i class="fa-solid fa-chevron-right"></i>
-                </div>
-
-                <!-- COVER SPREAD -->
-                <div v-if="currentSpread === 0" class="ch-book__cover">
-                    <!-- Left panel: decorative branding -->
-                    <div class="ch-book__cover-left">
-                        <div class="ch-book__corner ch-book__corner--tl"></div>
-                        <div class="ch-book__corner ch-book__corner--bl"></div>
-
-                        <div class="ch-book__cover-brand">
-                            <div class="ch-book__cover-emblem">
-                                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                    <path d="M17 8h1a4 4 0 0 1 0 8h-1"/>
-                                    <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/>
-                                    <line x1="6" y1="2" x2="6" y2="4"/>
-                                    <line x1="10" y1="2" x2="10" y2="4"/>
-                                    <line x1="14" y1="2" x2="14" y2="4"/>
-                                </svg>
-                            </div>
-                            <h1 class="ch-book__cover-name">Coffee<span>Hub</span></h1>
-                            <div class="ch-book__cover-divider"></div>
-                            <p class="ch-book__cover-est">Est. 2026 Â· Gourmet Roastery</p>
-                            <p class="ch-book__cover-quote">"HÆ°Æ¡ng vá»‹ thÆ¡m ná»“ng trong tá»«ng giá»t cĂ  phĂª nguyĂªn cháº¥t"</p>
-                        </div>
-                    </div>
-
-                    <!-- Right panel: call to action -->
-                    <div class="ch-book__cover-right">
-                        <div class="ch-book__corner ch-book__corner--tr"></div>
-                        <div class="ch-book__corner ch-book__corner--br"></div>
-
-                        <div class="ch-book__cover-cta-box">
-                            <span class="ch-book__cover-badge">THá»°C ÄÆ N COFFEEHUB</span>
-                            <h2 class="ch-book__cover-cta-title">Má»Ÿ Cuá»‘n Thá»±c ÄÆ¡n</h2>
-                            <p class="ch-book__cover-cta-desc">
-                                KĂ­nh má»i quĂ½ khĂ¡ch khĂ¡m phĂ¡ {{ products.length }}+ mĂ³n cĂ  phĂª, trĂ  trĂ¡i cĂ¢y,
-                                Ä‘Ă¡ xay vĂ  bĂ¡nh ngá»t bÆ¡ tÆ°Æ¡i Ä‘á»™c quyá»n táº¡i CoffeeHub.
-                            </p>
-                            <div class="ch-book__cover-cats">
-                                <span v-for="cat in categories.slice(0, 4)" :key="cat.id" class="ch-book__cover-cat-pill">
-                                    {{ cat.ten_danh_muc }}
-                                </span>
-                            </div>
-                            <button @click="nextSpread" class="ch-btn-primary ch-btn-primary--lg">
-                                Láº­t Xem Menu <i class="fa-solid fa-book-open ms-2"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- INSIDE PAGES SPREAD -->
-                <div v-else class="ch-book__pages">
-                    <!-- LEFT PAGE -->
-                    <div class="ch-book__page ch-book__page--left">
-                        <div class="ch-page__header">
-                            <div>
-                                <span class="ch-page__brand-mini">CoffeeHub Menu</span>
-                                <h4 class="ch-page__cat-title">{{ getPageData(currentSpread, 'left').categoryName }}</h4>
-                            </div>
-                            <span class="ch-page__num-badge">Trang {{ currentSpread * 2 - 1 }}</span>
-                        </div>
-                        <div class="ch-page__items">
-                            <div
-                                v-for="(item, idx) in getPageData(currentSpread, 'left').items"
-                                :key="idx"
-                                class="ch-page__item"
-                                @click="openModal(item)"
-                            >
-                                <div class="ch-page__item-img">
-                                    <img :src="item.hinh_anh || defaultImage" :alt="item.ten_san_pham" @error="onImgError" />
-                                </div>
-                                <div class="ch-page__item-info">
-                                    <div class="ch-page__item-row">
-                                        <span class="ch-page__item-name">{{ item.ten_san_pham }}</span>
-                                        <span class="ch-page__dots"></span>
-                                        <span class="ch-page__item-price">{{ formatVND(item.gia_ban) }}<small>Ä‘</small></span>
-                                    </div>
-                                    <p class="ch-page__item-desc">{{ item.mo_ta || 'NguyĂªn liá»‡u tÆ°Æ¡i ngon pha cháº¿ thá»§ cĂ´ng.' }}</p>
-                                    <span class="ch-page__item-size">Size {{ item.kich_thuoc || 'M' }}</span>
-                                </div>
-                            </div>
-                            <div v-if="getPageData(currentSpread, 'left').items.length === 0" class="ch-page__empty">
-                                <i class="fa-solid fa-leaf"></i>
-                                <span>Háº¿t mĂ³n</span>
-                            </div>
-                        </div>
-                        <div class="ch-page__footer">
-                            <button @click="prevSpread" class="ch-page__flip-btn">
-                                <i class="fa-solid fa-chevron-left"></i> Trang trÆ°á»›c
-                            </button>
-                            <span class="ch-page__footer-num">{{ currentSpread * 2 - 1 }}</span>
-                        </div>
-                    </div>
-
-                    <!-- RIGHT PAGE -->
-                    <div class="ch-book__page ch-book__page--right">
-                        <div class="ch-page__header">
-                            <div>
-                                <span class="ch-page__brand-mini">CoffeeHub Menu</span>
-                                <h4 class="ch-page__cat-title">{{ getPageData(currentSpread, 'right').categoryName }}</h4>
-                            </div>
-                            <span class="ch-page__num-badge">Trang {{ currentSpread * 2 }}</span>
-                        </div>
-                        <div class="ch-page__items">
-                            <div
-                                v-for="(item, idx) in getPageData(currentSpread, 'right').items"
-                                :key="idx"
-                                class="ch-page__item"
-                                @click="openModal(item)"
-                            >
-                                <div class="ch-page__item-img">
-                                    <img :src="item.hinh_anh || defaultImage" :alt="item.ten_san_pham" @error="onImgError" />
-                                </div>
-                                <div class="ch-page__item-info">
-                                    <div class="ch-page__item-row">
-                                        <span class="ch-page__item-name">{{ item.ten_san_pham }}</span>
-                                        <span class="ch-page__dots"></span>
-                                        <span class="ch-page__item-price">{{ formatVND(item.gia_ban) }}<small>Ä‘</small></span>
-                                    </div>
-                                    <p class="ch-page__item-desc">{{ item.mo_ta || 'NguyĂªn liá»‡u tÆ°Æ¡i ngon pha cháº¿ thá»§ cĂ´ng.' }}</p>
-                                    <span class="ch-page__item-size">Size {{ item.kich_thuoc || 'M' }}</span>
-                                </div>
-                            </div>
-                            <div v-if="getPageData(currentSpread, 'right').items.length === 0" class="ch-page__empty">
-                                <i class="fa-solid fa-leaf"></i>
-                                <span>Háº¿t trang</span>
-                            </div>
-                        </div>
-                        <div class="ch-page__footer ch-page__footer--right">
-                            <span class="ch-page__footer-num">{{ currentSpread * 2 }}</span>
-                            <button @click="nextSpread" :disabled="currentSpread >= maxSpreads" class="ch-page__flip-btn">
-                                Trang sau <i class="fa-solid fa-chevron-right"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>
+          <!-- CHỌN MỨC ĐƯỜNG -->
+          <div class="mb-3">
+            <label class="form-label fw-bold small text-uppercase text-muted mb-2">
+              3. Lượng đường / Ngọt
+            </label>
+            <div class="d-flex flex-wrap gap-2">
+              <button
+                v-for="du in DUONG_OPTIONS"
+                :key="du.ma"
+                type="button"
+                class="btn btn-sm rounded-pill"
+                :class="selectedDuong.ma === du.ma ? 'btn-dark' : 'btn-outline-secondary'"
+                @click="selectedDuong = du"
+              >
+                {{ du.ten }}
+              </button>
             </div>
+          </div>
 
-            <!-- Spread Quick Tabs -->
-            <div class="ch-book-tabs">
-                <button
-                    @click="gotoSpread(0)"
-                    class="ch-book-tab"
-                    :class="{ active: currentSpread === 0 }"
+          <!-- CHỌN TOPPING -->
+          <div class="mb-3">
+            <label class="form-label fw-bold small text-uppercase text-muted mb-2">
+              4. Topping thêm thơm ngon
+            </label>
+            <div class="row g-2">
+              <div v-for="top in TOPPINGS" :key="top.id" class="col-6">
+                <div
+                  class="ch-topping-item p-2 rounded-3 border d-flex justify-content-between align-items-center cursor-pointer"
+                  :class="isToppingSelected(top.id) ? 'border-amber bg-amber-light' : 'bg-white'"
+                  @click="toggleTopping(top)"
                 >
-                    đŸ“• BĂ¬a
-                </button>
-                <button
-                    v-for="s in maxSpreads"
-                    :key="s"
-                    @click="gotoSpread(s)"
-                    class="ch-book-tab"
-                    :class="{ active: currentSpread === s }"
-                >
-                    đŸ“– {{ getSpreadCategoryTitle(s) }}
-                </button>
-            </div>
-        </main>
-
-        <!-- ======= DETAIL MODAL ======= -->
-        <transition name="ch-modal-fade">
-            <div v-if="selectedItem" class="ch-modal-overlay" @click.self="closeModal">
-                <div class="ch-modal" role="dialog" aria-modal="true">
-                    <!-- Close btn -->
-                    <button class="ch-modal__close" @click="closeModal" aria-label="ÄĂ³ng">
-                        <i class="fa-solid fa-xmark"></i>
-                    </button>
-
-                    <!-- Image col -->
-                    <div class="ch-modal__img-wrap">
-                        <img
-                            :src="selectedItem.hinh_anh || defaultImage"
-                            :alt="selectedItem.ten_san_pham"
-                            class="ch-modal__img"
-                            @error="onImgError"
-                        />
-                        <div class="ch-modal__img-overlay"></div>
-                        <div class="ch-modal__img-badges">
-                            <span class="ch-badge ch-badge--cat ch-badge--lg">{{ getCategoryName(selectedItem.id_danh_muc) }}</span>
-                            <span class="ch-badge ch-badge--size ch-badge--lg">Size {{ selectedItem.kich_thuoc || 'M' }}</span>
-                        </div>
-                    </div>
-
-                    <!-- Info col -->
-                    <div class="ch-modal__info">
-                        <div class="ch-modal__breadcrumb">
-                            <i class="fa-solid fa-house-chimney"></i>
-                            <span>Menu</span>
-                            <i class="fa-solid fa-chevron-right ch-modal__breadcrumb-sep"></i>
-                            <span>{{ getCategoryName(selectedItem.id_danh_muc) }}</span>
-                        </div>
-
-                        <h2 class="ch-modal__name">{{ selectedItem.ten_san_pham }}</h2>
-
-                        <div class="ch-modal__price-wrap">
-                            <span class="ch-modal__price-label">GiĂ¡ niĂªm yáº¿t</span>
-                            <div class="ch-modal__price">{{ formatVND(selectedItem.gia_ban) }}<small>Ä‘</small></div>
-                        </div>
-
-                        <div class="ch-modal__divider"></div>
-
-                        <div class="ch-modal__section">
-                            <h5 class="ch-modal__section-title">
-                                <i class="fa-solid fa-list-ul"></i> MĂ´ Táº£ & ThĂ nh Pháº§n
-                            </h5>
-                            <p class="ch-modal__desc">
-                                {{ selectedItem.mo_ta || 'MĂ³n nÆ°á»›c thÆ¡m ngon háº£o háº¡ng Ä‘Æ°á»£c cĂ¡c Barista pha cháº¿ tá»« háº¡t cĂ  phĂª nguyĂªn cháº¥t cĂ¹ng Ä‘Æ°á»ng sá»¯a chuáº©n tá»‰ lá»‡. HÆ°Æ¡ng vá»‹ Ä‘áº­m Ä‘Ă , bĂ©o ngáº­y vĂ  ngá»t thanh.' }}
-                            </p>
-                        </div>
-
-                        <div class="ch-modal__barista-tip">
-                            <div class="ch-modal__tip-header">
-                                <i class="fa-solid fa-sparkles"></i>
-                                Gá»£i Ă½ tá»« Barista
-                            </div>
-                            <p class="ch-modal__tip-body">
-                                Ngon nháº¥t khi dĂ¹ng láº¡nh. CĂ³ thá»ƒ yĂªu cáº§u gia giáº£m Ä‘Æ°á»ng 50% hoáº·c 70% Ä‘Ă¡ tĂ¹y kháº©u vá»‹ riĂªng cá»§a báº¡n.
-                            </p>
-                        </div>
-
-                        <div class="ch-modal__meta-row">
-                            <div class="ch-modal__meta-item">
-                                <i class="fa-solid fa-mug-hot"></i>
-                                <span>Phá»¥c Vá»¥ NĂ³ng / Láº¡nh</span>
-                            </div>
-                            <div class="ch-modal__meta-item">
-                                <i class="fa-solid fa-clock"></i>
-                                <span>3â€“5 phĂºt</span>
-                            </div>
-                            <div class="ch-modal__meta-item">
-                                <i class="fa-solid fa-star"></i>
-                                <span>Háº£o Háº¡ng</span>
-                            </div>
-                        </div>
-                    </div>
+                  <div>
+                    <div class="small fw-semibold">{{ top.ten }}</div>
+                    <div class="text-amber smaller fw-bold">+{{ formatVND(top.gia) }}</div>
+                  </div>
+                  <i
+                    class="fa-solid"
+                    :class="isToppingSelected(top.id) ? 'fa-circle-check text-amber' : 'fa-circle text-muted opacity-25'"
+                  ></i>
                 </div>
+              </div>
             </div>
-        </transition>
+          </div>
 
-        <!-- ======= FOOTER ======= -->
-        <footer class="ch-footer">
-            <div class="ch-footer__inner">
-                <div class="ch-footer__brand">
-                    <div class="ch-brand__icon ch-brand__icon--sm">
-                        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
-                            <path d="M17 8h1a4 4 0 0 1 0 8h-1"/>
-                            <path d="M3 8h14v9a4 4 0 0 1-4 4H7a4 4 0 0 1-4-4Z"/>
-                        </svg>
-                    </div>
-                    <span>CoffeeHub</span>
-                </div>
-                <div class="ch-footer__info">
-                    <span><i class="fa-solid fa-clock"></i> 07:00 â€“ 22:30</span>
-                    <span><i class="fa-solid fa-wifi"></i> CoffeeHub_FreePass</span>
-                    <span><i class="fa-solid fa-location-dot"></i> Phá»¥c vá»¥ táº¡i bĂ n</span>
-                </div>
-                <div class="ch-footer__copy">Â© 2026 CoffeeHub Â· Gourmet Roastery</div>
+          <!-- GHI CHÚ RIÊNG -->
+          <div class="mb-3">
+            <label class="form-label fw-bold small text-uppercase text-muted mb-1">
+              5. Ghi chú đặc biệt cho Barista
+            </label>
+            <input
+              type="text"
+              class="form-control form-control-sm rounded-3"
+              placeholder="Ví dụ: Để đá riêng, nhiều sữa đặc, không bọt..."
+              v-model="customNote"
+            />
+          </div>
+
+          <!-- SỐ LƯỢNG LY -->
+          <div class="d-flex justify-content-between align-items-center pt-2 border-top">
+            <span class="fw-bold small text-muted">Số lượng:</span>
+            <div class="input-group input-group-sm" style="width: 120px;">
+              <button class="btn btn-outline-secondary" @click="customQuantity = Math.max(1, customQuantity - 1)">
+                <i class="fa-solid fa-minus"></i>
+              </button>
+              <input
+                type="text"
+                class="form-control text-center fw-bold bg-white"
+                v-model="customQuantity"
+                readonly
+              />
+              <button class="btn btn-outline-secondary" @click="customQuantity++">
+                <i class="fa-solid fa-plus"></i>
+              </button>
             </div>
-        </footer>
+          </div>
+        </div>
+
+        <div class="ch-sheet-footer p-3 border-top bg-light d-flex gap-2">
+          <button class="btn btn-outline-secondary rounded-pill w-25" @click="showCustomModal = false">
+            Đóng
+          </button>
+          <button class="btn btn-amber rounded-pill w-75 fw-bold" @click="addCustomizedItemToCart">
+            Thêm vào giỏ • {{ formatVND(customUnitPrice * customQuantity) }}
+          </button>
+        </div>
+      </div>
     </div>
+
+    <!-- ======================================================== -->
+    <!-- DRAWER 2: GIỎ HÀNG & THANH TOÁN (UC10, 11, 13, 14, 18)   -->
+    <!-- ======================================================== -->
+    <div
+      v-if="showCartDrawer"
+      class="ch-modal-backdrop"
+      @click.self="showCartDrawer = false"
+    >
+      <div class="ch-cart-drawer d-flex flex-column">
+        <div class="p-3 border-bottom d-flex justify-content-between align-items-center bg-white">
+          <div class="d-flex align-items-center gap-2">
+            <i class="fa-solid fa-bag-shopping text-amber fs-5"></i>
+            <h6 class="fw-bold mb-0">Giỏ hàng của bạn ({{ cartStore.totalCount }})</h6>
+          </div>
+          <button class="btn-close" @click="showCartDrawer = false"></button>
+        </div>
+
+        <!-- Cart items list -->
+        <div class="flex-grow-1 p-3 overflow-auto bg-light">
+          <div v-if="cartStore.items.length === 0" class="text-center py-5">
+            <i class="fa-solid fa-basket-shopping fs-1 text-muted opacity-25 mb-3"></i>
+            <h6 class="text-muted fw-bold">Giỏ hàng đang trống</h6>
+            <p class="small text-muted mb-3">Hãy chọn những ly thức uống ngon tuyệt từ thực đơn nhé!</p>
+            <button class="btn btn-sm btn-amber rounded-pill px-3" @click="showCartDrawer = false">
+              Xem thực đơn ngay
+            </button>
+          </div>
+
+          <div v-else class="d-flex flex-column gap-2.5">
+            <div
+              v-for="item in cartStore.items"
+              :key="item.uid"
+              class="bg-white p-3 rounded-4 shadow-sm border position-relative"
+            >
+              <div class="d-flex gap-2.5">
+                <img
+                  :src="item.hinh_anh || defaultProductImg"
+                  class="rounded-3 ch-cart-thumb"
+                  @error="onImgError"
+                />
+                <div class="flex-grow-1">
+                  <div class="d-flex justify-content-between align-items-start">
+                    <h6 class="fw-bold mb-0 fs-6">{{ item.ten_san_pham }}</h6>
+                    <button class="btn btn-sm text-danger p-0 border-0" @click="cartStore.removeItem(item.uid)">
+                      <i class="fa-solid fa-trash-can"></i>
+                    </button>
+                  </div>
+
+                  <!-- Snapshot options string -->
+                  <div class="text-muted smaller my-1" v-if="item.tuy_chon_text">
+                    <i class="fa-solid fa-sliders me-1 text-amber"></i>{{ item.tuy_chon_text }}
+                  </div>
+                  <div class="text-muted smaller" v-if="item.ghi_chu">
+                    <i class="fa-regular fa-note-sticky me-1"></i>"{{ item.ghi_chu }}"
+                  </div>
+
+                  <div class="d-flex justify-content-between align-items-center mt-2">
+                    <span class="text-amber fw-bold">{{ formatVND(item.don_gia) }}</span>
+                    <!-- Stepper -->
+                    <div class="input-group input-group-sm" style="width: 100px;">
+                      <button class="btn btn-outline-secondary py-0" @click="cartStore.updateQuantity(item.uid, -1)">-</button>
+                      <span class="input-group-text bg-white fw-bold px-2 py-0 border-secondary">{{ item.so_luong }}</span>
+                      <button class="btn btn-outline-secondary py-0" @click="cartStore.updateQuantity(item.uid, 1)">+</button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Cart footer / Voucher & Total -->
+        <div class="p-3 bg-white border-top shadow-lg" v-if="cartStore.items.length > 0">
+          <!-- VOUCHER INPUT (UC18) -->
+          <div class="mb-3">
+            <div class="d-flex gap-2">
+              <input
+                type="text"
+                class="form-control form-control-sm text-uppercase rounded-pill border"
+                placeholder="Nhập mã voucher (Ví dụ: BANMOI)"
+                v-model="voucherInput"
+                :disabled="!!cartStore.voucher"
+              />
+              <button
+                v-if="!cartStore.voucher"
+                class="btn btn-sm btn-dark rounded-pill px-3 fw-semibold text-nowrap"
+                :disabled="checkingVoucher || !voucherInput.trim()"
+                @click="checkAndApplyVoucher"
+              >
+                <span v-if="checkingVoucher" class="spinner-border spinner-border-sm me-1"></span>
+                Áp dụng
+              </button>
+              <button
+                v-else
+                class="btn btn-sm btn-outline-danger rounded-pill px-3"
+                @click="removeVoucher"
+              >
+                Hủy
+              </button>
+            </div>
+            <small v-if="cartStore.voucher" class="text-success fw-semibold d-block mt-1">
+              <i class="fa-solid fa-tag me-1"></i>Đã áp dụng mã <strong>{{ cartStore.voucher.ma_voucher }}</strong>: Giảm {{ formatVND(cartStore.discountAmount) }}
+            </small>
+            <small v-if="voucherError" class="text-danger d-block mt-1">
+              <i class="fa-solid fa-circle-exclamation me-1"></i>{{ voucherError }}
+            </small>
+          </div>
+
+          <!-- TOTAL SUMMARY -->
+          <div class="small mb-2 d-flex justify-content-between text-muted">
+            <span>Tạm tính ({{ cartStore.totalCount }} ly):</span>
+            <span>{{ formatVND(cartStore.subtotal) }}</span>
+          </div>
+          <div v-if="cartStore.discountAmount > 0" class="small mb-2 d-flex justify-content-between text-success fw-semibold">
+            <span>Giảm giá Voucher:</span>
+            <span>-{{ formatVND(cartStore.discountAmount) }}</span>
+          </div>
+          <div class="fs-5 fw-bold d-flex justify-content-between text-dark mb-3 pt-2 border-top">
+            <span>Tổng thanh toán:</span>
+            <span class="text-amber">{{ formatVND(cartStore.finalTotal) }}</span>
+          </div>
+
+          <!-- BUTTON OPEN CHECKOUT MODAL -->
+          <button class="btn btn-amber w-100 py-2.5 rounded-pill fw-bold fs-6 shadow-sm" @click="openCheckoutModal">
+            Đặt món & Thanh toán Pay-First <i class="fa-solid fa-arrow-right ms-1"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL 3: XÁC NHẬN THANH TOÁN (VIETQR / TIỀN MẶT - UC09, 15, 16, 17) -->
+    <!-- ======================================================== -->
+    <div
+      v-if="showCheckoutModal"
+      class="ch-modal-backdrop"
+      @click.self="showCheckoutModal = false"
+    >
+      <div class="ch-modal-dialog bg-white rounded-4 shadow-xl overflow-hidden">
+        <div class="p-3 px-4 border-bottom d-flex justify-content-between align-items-center bg-white">
+          <div class="d-flex align-items-center gap-2.5">
+            <div class="ch-badge-icon bg-amber-subtle text-amber">
+              <i class="fa-solid fa-credit-card"></i>
+            </div>
+            <div>
+              <h6 class="fw-bold mb-0 text-dark fs-6">Xác nhận đơn & Thanh toán</h6>
+              <small class="text-muted">Quy trình Pay-First tự động</small>
+            </div>
+          </div>
+          <button class="btn-close shadow-none" @click="showCheckoutModal = false"></button>
+        </div>
+
+        <div class="p-3 px-4">
+          <!-- Thông tin khách -->
+          <div class="mb-3">
+            <label class="form-label small text-muted fw-bold mb-1.5 d-flex justify-content-between">
+              <span>Số điện thoại liên hệ</span>
+              <span class="fw-normal text-muted smaller">Tùy chọn</span>
+            </label>
+            <div class="input-group input-group-sm">
+              <span class="input-group-text bg-light border-end-0 text-muted rounded-start-3 ps-3">
+                <i class="fa-solid fa-phone"></i>
+              </span>
+              <input
+                type="tel"
+                class="form-control form-control-sm border-start-0 rounded-end-3 py-2 shadow-none"
+                placeholder="Nhập SĐT để tích điểm & nhận hóa đơn điện tử..."
+                v-model="customerPhone"
+              />
+            </div>
+          </div>
+
+          <div class="mb-3">
+            <label class="form-label small text-muted fw-bold mb-1.5 d-flex justify-content-between">
+              <span>Tên quý khách</span>
+              <span class="fw-normal text-muted smaller">Để nhân viên xưng hô</span>
+            </label>
+            <div class="input-group input-group-sm">
+              <span class="input-group-text bg-light border-end-0 text-muted rounded-start-3 ps-3">
+                <i class="fa-solid fa-user"></i>
+              </span>
+              <input
+                type="text"
+                class="form-control form-control-sm border-start-0 rounded-end-3 py-2 shadow-none"
+                placeholder="Tên của bạn (Ví dụ: Anh Nam, Chị Linh)..."
+                v-model="customerName"
+              />
+            </div>
+          </div>
+
+          <!-- CHỌN PHƯƠNG THỨC -->
+          <label class="form-label small text-muted fw-bold mb-2">Chọn phương thức thanh toán</label>
+          <div class="d-flex flex-column gap-2 mb-3">
+            <label
+              class="ch-pay-option p-3 rounded-4 border d-flex align-items-center gap-3 cursor-pointer"
+              :class="paymentMethod === 'VIETQR' ? 'border-amber bg-amber-light shadow-xs' : 'bg-white'"
+            >
+              <input type="radio" value="VIETQR" v-model="paymentMethod" class="form-check-input mt-0" />
+              <div class="flex-grow-1">
+                <div class="d-flex justify-content-between align-items-center mb-0.5">
+                  <span class="fw-bold small text-dark d-flex align-items-center gap-1.5">
+                    <i class="fa-solid fa-qrcode text-amber"></i> Chuyển khoản VietQR
+                  </span>
+                  <span class="badge bg-amber text-white smaller rounded-pill px-2">Khuyên dùng</span>
+                </div>
+                <div class="text-muted smaller">Quét mã QR Mobile Banking chuyển khoản chính xác 100%</div>
+              </div>
+            </label>
+
+            <label
+              class="ch-pay-option p-3 rounded-4 border d-flex align-items-center gap-3 cursor-pointer"
+              :class="paymentMethod === 'TIEN_MAT' ? 'border-amber bg-amber-light shadow-xs' : 'bg-white'"
+            >
+              <input type="radio" value="TIEN_MAT" v-model="paymentMethod" class="form-check-input mt-0" />
+              <div class="flex-grow-1">
+                <div class="fw-bold small text-dark d-flex align-items-center gap-1.5 mb-0.5">
+                  <i class="fa-solid fa-money-bill-wave text-success"></i> Tiền mặt tại bàn
+                </div>
+                <div class="text-muted smaller">Thu ngân sẽ tới tận bàn để nhận tiền mặt và xác nhận đơn</div>
+              </div>
+            </label>
+          </div>
+
+          <!-- TỔNG TIỀN THANH TOÁN -->
+          <div class="ch-checkout-summary-box p-3 rounded-4 mb-3 d-flex justify-content-between align-items-center">
+            <div>
+              <span class="smaller text-muted d-block fw-semibold text-uppercase">Số tiền cần thanh toán</span>
+              <small class="text-muted">Đã bao gồm topping & voucher</small>
+            </div>
+            <span class="fs-4 fw-extrabold text-amber">{{ formatVND(cartStore.finalTotal) }}</span>
+          </div>
+
+          <div v-if="orderError" class="alert alert-danger small p-2.5 rounded-3 mb-3 d-flex align-items-center gap-2">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+            <span>{{ orderError }}</span>
+          </div>
+
+          <button
+            class="btn btn-amber w-100 py-2.5 rounded-pill fw-bold shadow-sm fs-6"
+            :disabled="submittingOrder"
+            @click="submitOrder"
+          >
+            <span v-if="submittingOrder" class="spinner-border spinner-border-sm me-1.5"></span>
+            Xác nhận gọi món • {{ formatVND(cartStore.finalTotal) }}
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL 4: HIỂN THỊ VIETQR & TIẾN TRÌNH THEO DÕI (UC16, 19) -->
+    <!-- ======================================================== -->
+    <div
+      v-if="showTrackingModal"
+      class="ch-modal-backdrop"
+      @click.self="showTrackingModal = false"
+    >
+      <div class="ch-modal-dialog bg-white rounded-4 shadow-xl overflow-hidden">
+        <div class="p-3 px-4 border-bottom d-flex justify-content-between align-items-center bg-white">
+          <div class="d-flex align-items-center gap-2.5">
+            <div class="ch-badge-icon bg-success-subtle text-success">
+              <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div>
+              <h6 class="fw-bold mb-0 text-dark fs-6">Đơn hàng #{{ cartStore.activeOrderId }}</h6>
+              <small class="text-muted">Trạng thái cập nhật tự động realtime</small>
+            </div>
+          </div>
+          <button class="btn-close shadow-none" @click="showTrackingModal = false"></button>
+        </div>
+
+        <div class="p-3 px-4 overflow-auto" style="max-height: 80vh;">
+          <!-- NẾU CHƯA THANH TOÁN & LÀ VIETQR THÌ HIỆN MÃ QR -->
+          <div
+            v-if="activeOrderState && !activeOrderState.is_paid && activeOrderState.order.phuong_thuc_thanh_toan == 2"
+            class="text-center p-3 mb-3 bg-amber-light rounded-4 border border-amber"
+          >
+            <span class="badge bg-warning text-dark mb-2 fw-bold">Bước 1: Quét mã thanh toán Pay-First</span>
+            <h6 class="fw-bold text-dark mb-1">Mã hóa đơn: {{ activeOrderState.order.ma_hoa_don }}</h6>
+            <div class="text-danger fw-bold fs-5 mb-2">{{ formatVND(activeOrderState.order.tong_tien) }}</div>
+
+            <!-- VietQR Image -->
+            <div class="bg-white p-2 rounded-3 d-inline-block shadow-sm mb-2 border">
+              <img
+                :src="activeVietQrUrl"
+                alt="VietQR Pay-First"
+                class="img-fluid"
+                style="max-width: 230px;"
+              />
+            </div>
+            <p class="smaller text-muted mb-0">
+              Vui lòng giữ nguyên nội dung chuyển khoản để hệ thống tự động đối soát và đẩy lệnh pha chế xuống quầy Barista.
+            </p>
+          </div>
+
+          <!-- NẾU CHỌN TIỀN MẶT VÀ CHƯA THANH TOÁN -->
+          <div
+            v-else-if="activeOrderState && !activeOrderState.is_paid && activeOrderState.order.phuong_thuc_thanh_toan == 1"
+            class="text-center p-3 mb-3 bg-light rounded-4 border"
+          >
+            <i class="fa-solid fa-person-walking-luggage fs-1 text-amber mb-2"></i>
+            <h6 class="fw-bold text-dark mb-1">Đang chờ thu ngân thu tiền tại bàn</h6>
+            <p class="small text-muted mb-0">
+              Thu ngân đang chuẩn bị tới bàn <strong>{{ currentTable ? currentTable.ten_ban : '' }}</strong> để nhận số tiền <strong>{{ formatVND(activeOrderState.order.tong_tien) }}</strong>.
+            </p>
+          </div>
+
+          <!-- TIMELINE TIẾN TRÌNH THEO DÕI REALTIME (UC19) -->
+          <div class="mb-3 p-3 bg-light rounded-4 border">
+            <h6 class="fw-bold small text-muted text-uppercase mb-3">Tiến độ phục vụ</h6>
+
+            <div class="ch-timeline">
+              <!-- Step 1 -->
+              <div class="ch-timeline-step" :class="{ 'step-active': trackingStep === 1, 'step-done': trackingStep > 1 }">
+                <div class="step-dot">
+                  <i class="fa-solid" :class="trackingStep > 1 ? 'fa-check' : 'fa-receipt'"></i>
+                </div>
+                <div class="step-content">
+                  <div class="fw-bold small">Tiếp nhận đơn hàng</div>
+                  <div class="smaller text-muted">
+                    {{ activeOrderState && activeOrderState.is_paid ? 'Đã xác nhận thanh toán Pay-First' : 'Đang chờ xác nhận thanh toán' }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 2 -->
+              <div class="ch-timeline-step" :class="{ 'step-active': trackingStep === 2, 'step-done': trackingStep > 2 }">
+                <div class="step-dot">
+                  <i class="fa-solid" :class="trackingStep > 2 ? 'fa-check' : 'fa-fire-burner'"></i>
+                </div>
+                <div class="step-content">
+                  <div class="fw-bold small">Quầy Barista pha chế</div>
+                  <div class="smaller text-muted">
+                    {{ trackingStep > 2 ? 'Barista đã hoàn tất pha chế' : (trackingStep === 2 ? 'Barista đang chuẩn bị nguyên liệu và pha chế' : 'Chờ chuyển sang quầy pha chế') }}
+                  </div>
+                </div>
+              </div>
+
+              <!-- Step 3 -->
+              <div class="ch-timeline-step" :class="{ 'step-active': trackingStep === 3, 'step-done': trackingStep >= 3 }">
+                <div class="step-dot">
+                  <i class="fa-solid" :class="trackingStep >= 3 ? 'fa-check' : 'fa-mug-hot'"></i>
+                </div>
+                <div class="step-content">
+                  <div class="fw-bold small">Đồ uống hoàn tất</div>
+                  <div class="smaller text-muted">
+                    {{ trackingStep >= 3 ? 'Đồ uống đã pha xong, nhân viên đang mang tới bàn!' : 'Chờ hoàn tất ly nước' }}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- DANH SÁCH MÓN ĐANG PHA -->
+          <div v-if="activeOrderState && activeOrderState.items" class="mb-3">
+            <h6 class="fw-bold small text-muted text-uppercase mb-2">Chi tiết món trong đơn</h6>
+            <div class="d-flex flex-column gap-2">
+              <div
+                v-for="it in activeOrderState.items"
+                :key="it.id"
+                class="p-2.5 rounded-3 bg-white border d-flex justify-content-between align-items-center"
+              >
+                <div>
+                  <div class="fw-bold small">{{ it.ten_san_pham }} x{{ it.so_luong }}</div>
+                  <div class="text-muted smaller" v-if="it.ghi_chu">{{ it.ghi_chu }}</div>
+                </div>
+                <span
+                  class="badge rounded-pill"
+                  :class="it.tinh_trang == 2 ? 'bg-success' : (it.tinh_trang == 1 ? 'bg-warning text-dark' : 'bg-secondary')"
+                >
+                  {{ it.tinh_trang == 2 ? 'Đã xong' : (it.tinh_trang == 1 ? 'Đang pha' : 'Chờ duyệt') }}
+                </span>
+              </div>
+            </div>
+          </div>
+
+          <button class="btn btn-outline-dark w-100 rounded-pill py-2 small fw-semibold" @click="showTrackingModal = false">
+            Tiếp tục xem thực đơn
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- ======================================================== -->
+    <!-- MODAL 5: TRỢ LÝ AI BARISTA TƯ VẤN KHẨU VỊ (UC08)          -->
+    <!-- ======================================================== -->
+    <div
+      v-if="showAiModal"
+      class="ch-modal-backdrop"
+      @click.self="showAiModal = false"
+    >
+      <div class="ch-ai-chat-box bg-white rounded-4 shadow-2xl overflow-hidden d-flex flex-column">
+        <!-- AI Header (Bright Sunrise Gradient) -->
+        <div class="p-3 bg-gradient-sunrise text-white d-flex justify-content-between align-items-center shadow-xs">
+          <div class="d-flex align-items-center gap-2.5">
+            <div class="ai-avatar-pulse">
+              <i class="fa-solid fa-wand-magic-sparkles"></i>
+            </div>
+            <div>
+              <h6 class="fw-bold mb-0">Trợ Lý AI Barista</h6>
+              <small class="text-white-50">Tư vấn đồ uống cá nhân hóa chuẩn gu</small>
+            </div>
+          </div>
+          <button class="btn-close btn-close-white" @click="showAiModal = false"></button>
+        </div>
+
+        <!-- Chat messages stream -->
+        <div class="flex-grow-1 p-3 overflow-auto ch-chat-stream bg-slate-light" ref="chatStream">
+          <div
+            v-for="(msg, i) in aiMessages"
+            :key="i"
+            class="mb-3 d-flex"
+            :class="msg.sender === 'user' ? 'justify-content-end' : 'justify-content-start'"
+          >
+            <div
+              class="ch-chat-bubble p-3 rounded-4 shadow-xs"
+              :class="msg.sender === 'user' ? 'bubble-user bg-gradient-amber-btn text-white' : 'bubble-ai bg-white border text-dark'"
+            >
+              <div class="d-flex align-items-center gap-1.5 mb-1 text-amber smaller fw-bold" v-if="msg.sender === 'ai'">
+                <i class="fa-solid fa-robot"></i> AI Barista
+              </div>
+              <p class="small mb-2 whitespace-pre-line">{{ msg.text }}</p>
+
+              <!-- If AI returned drink recommendations -->
+              <div v-if="msg.recommendations && msg.recommendations.length > 0" class="mt-2 pt-2 border-top">
+                <div class="smaller fw-bold text-muted mb-1.5">Gợi ý dành riêng cho bạn:</div>
+                <div class="d-flex flex-column gap-1.5">
+                  <div
+                    v-for="rec in msg.recommendations"
+                    :key="rec.id"
+                    class="d-flex justify-content-between align-items-center bg-light p-2 rounded-3 border"
+                  >
+                    <div>
+                      <div class="small fw-bold text-dark">{{ rec.ten_san_pham }}</div>
+                      <div class="text-amber smaller fw-bold">{{ formatVND(rec.gia_ban) }}</div>
+                    </div>
+                    <button class="btn btn-sm btn-amber rounded-pill px-2.5 py-1 smaller fw-bold" @click="pickAiRecommended(rec)">
+                      Chọn món này
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Loading message from AI -->
+          <div v-if="aiLoading" class="d-flex justify-content-start mb-3">
+            <div class="bg-white p-3 rounded-4 border shadow-sm small text-muted d-flex align-items-center gap-2">
+              <span class="spinner-grow spinner-grow-sm text-amber" role="status"></span>
+              <span>AI Barista đang đọc thực đơn và pha chế gợi ý...</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Quick suggestion prompt chips -->
+        <div class="px-3 py-2 bg-white border-top overflow-auto d-flex gap-1.5 scrollbar-none">
+          <button
+            v-for="(chip, cIdx) in quickChips"
+            :key="cIdx"
+            class="btn btn-sm btn-light border rounded-pill px-2.5 py-0.5 smaller text-nowrap"
+            @click="sendAiMessage(chip)"
+          >
+            {{ chip }}
+          </button>
+        </div>
+
+        <!-- Chat input bar -->
+        <div class="p-2.5 bg-white border-top d-flex gap-2 align-items-center">
+          <input
+            type="text"
+            class="form-control rounded-pill form-control-sm px-3 shadow-none border"
+            placeholder="Hỏi về sở thích, vị giác, thời tiết hôm nay..."
+            v-model="aiInputText"
+            @keyup.enter="sendAiMessage()"
+            :disabled="aiLoading"
+          />
+          <button
+            class="btn btn-amber btn-sm rounded-circle px-2.5 py-2 shadow-sm"
+            @click="sendAiMessage()"
+            :disabled="aiLoading || !aiInputText.trim()"
+          >
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </template>
 
 <script>
 import axios from 'axios';
+import { useCartStore } from '../../../stores/cart';
+import { SIZES, DA_OPTIONS, DUONG_OPTIONS, TOPPINGS, formatTuyChonText } from '../../../config/tuyChon';
 
 export default {
-    name: 'CustomerMenuViewPremium',
-    data() {
-        return {
-            viewMode: 'grid',
-            currentSpread: 0,
-            isFlipping: false,
-            searchKey: '',
-            searchFocused: false,
-            selectedCategory: 0,
-            selectedItem: null,
-            scrolled: false,
-            products: [],
-            categories: [],
-            defaultImage: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=600&auto=format&fit=crop',
-            sampleCategories: [
-                { id: 1, ten_danh_muc: 'CĂ  PhĂª Rang Xay' },
-                { id: 2, ten_danh_muc: 'TrĂ  & Soda' },
-                { id: 3, ten_danh_muc: 'ÄĂ¡ Xay & Frappe' },
-                { id: 4, ten_danh_muc: 'BĂ¡nh Ngá»t BÆ¡ TÆ°Æ¡i' }
-            ],
-            sampleProducts: [
-                { id: 101, ten_san_pham: 'CĂ  PhĂª Sá»¯a ÄĂ¡', id_danh_muc: 1, gia_ban: 35000, kich_thuoc: 'M', hinh_anh: 'https://images.unsplash.com/photo-1517701604599-bb29b565090c?q=80&w=600', mo_ta: 'CĂ  phĂª Robusta rang Ä‘áº­m káº¿t há»£p sá»¯a Ä‘áº·c bĂ©o ngáº­y truyá»n thá»‘ng Viá»‡t Nam.' },
-                { id: 102, ten_san_pham: 'Báº¡c Xá»‰u CoffeeHub', id_danh_muc: 1, gia_ban: 39000, kich_thuoc: 'L', hinh_anh: 'https://images.unsplash.com/photo-1572442388796-11668a67e53d?q=80&w=600', mo_ta: 'Nhiá»u sá»¯a tÆ°Æ¡i bĂ©o thÆ¡m quyá»‡n chĂºt cá»‘t cĂ  phĂª Ä‘áº­m vá»‹ Ä‘áº·c trÆ°ng.' },
-                { id: 103, ten_san_pham: 'CĂ  PhĂª Muá»‘i Kem BĂ©o', id_danh_muc: 1, gia_ban: 42000, kich_thuoc: 'M', hinh_anh: 'https://images.unsplash.com/photo-1541167760496-1628856ab772?q=80&w=600', mo_ta: 'Lá»›p mĂ ng kem máº·n ngá»t bĂ©o Ä‘á»™c Ä‘Ă¡o â€” xu hÆ°á»›ng Ä‘ang hot nháº¥t.' },
-                { id: 104, ten_san_pham: 'Espresso Double Shot', id_danh_muc: 1, gia_ban: 30000, kich_thuoc: 'S', hinh_anh: 'https://images.unsplash.com/photo-1510591509098-f4fdc6d0ff04?q=80&w=600', mo_ta: 'Chiáº¿t xuáº¥t cĂ  phĂª Ä‘áº­m Ä‘áº·c chuáº©n Ă, dĂ nh cho ngÆ°á»i tháº­t sá»± yĂªu cĂ  phĂª.' },
-                { id: 105, ten_san_pham: 'TrĂ  ÄĂ o Cam Sáº£', id_danh_muc: 2, gia_ban: 45000, kich_thuoc: 'L', hinh_anh: 'https://images.unsplash.com/photo-1556679343-c7306c1976bc?q=80&w=600', mo_ta: 'TrĂ  Ä‘en háº£o háº¡ng pha hÆ°Æ¡ng cam tÆ°Æ¡i sáº£ thÆ¡m mĂ¡t cĂ¹ng miáº¿ng Ä‘Ă o giĂ²n tan.' },
-                { id: 106, ten_san_pham: 'TrĂ  Váº£i LĂ i Panna Cotta', id_danh_muc: 2, gia_ban: 48000, kich_thuoc: 'M', hinh_anh: 'https://images.unsplash.com/photo-1544787219-7f47ccb76574?q=80&w=600', mo_ta: 'TrĂ  hoa lĂ i thanh mĂ¡t káº¿t há»£p váº£i tÆ°Æ¡i vĂ  topping Panna cotta má»m má»‹n.' },
-                { id: 107, ten_san_pham: 'Matcha ÄĂ¡ Xay Cream', id_danh_muc: 3, gia_ban: 55000, kich_thuoc: 'L', hinh_anh: 'https://images.unsplash.com/photo-1536256263959-770b48d82b0a?q=80&w=600', mo_ta: 'Matcha Uji Nháº­t Báº£n xay láº¡nh quyá»‡n kem whipping bĂ´ng tuyáº¿t thÆ°á»£ng háº¡ng.' },
-                { id: 108, ten_san_pham: 'Chocolate ÄĂ¡ Xay', id_danh_muc: 3, gia_ban: 52000, kich_thuoc: 'L', hinh_anh: 'https://images.unsplash.com/photo-1553361371-9b22f78e8b1d?q=80&w=600', mo_ta: 'Chocolate Bá»‰ Ä‘áº­m Ä‘Ă  xay má»‹n cĂ¹ng sá»¯a tÆ°Æ¡i bĂ©o ngáº­y vĂ  Ä‘Ă¡ láº¡nh.' },
-                { id: 109, ten_san_pham: 'BĂ¡nh Croissant BÆ¡ TÆ°Æ¡i', id_danh_muc: 4, gia_ban: 32000, kich_thuoc: 'S', hinh_anh: 'https://images.unsplash.com/photo-1555507036-ab1f4038808a?q=80&w=600', mo_ta: 'BĂ¡nh sá»«ng bĂ² nÆ°á»›ng giĂ²n tan bĂ©o ngáº­y mĂ¹i bÆ¡ PhĂ¡p thÆ°á»£ng háº¡ng.' },
-                { id: 110, ten_san_pham: 'BĂ¡nh Tiramisu Truyá»n Thá»‘ng', id_danh_muc: 4, gia_ban: 42000, kich_thuoc: 'S', hinh_anh: 'https://images.unsplash.com/photo-1571877227200-a0d98ea607e9?q=80&w=600', mo_ta: 'Kem Mascarpone má»m má»‹n tháº¥m vá»‹ cĂ  phĂª vĂ  cacao cao cáº¥p nguyĂªn cháº¥t.' }
-            ]
-        };
-    },
-    computed: {
-        heroStats() {
-            return [
-                { value: this.products.length + '+', label: 'MĂ³n Chá»n Lá»c' },
-                { value: this.categories.length + '+', label: 'Danh Má»¥c' },
-                { value: '100%', label: 'NguyĂªn Liá»‡u TÆ°Æ¡i' },
-            ];
-        },
-        filteredProducts() {
-            let list = this.products;
-            if (this.selectedCategory > 0) {
-                list = list.filter(x => x.id_danh_muc == this.selectedCategory);
-            }
-            if (this.searchKey && this.searchKey.trim() !== '') {
-                const k = this.searchKey.toLowerCase().trim();
-                list = list.filter(x => x.ten_san_pham && x.ten_san_pham.toLowerCase().includes(k));
-            }
-            return list;
-        },
-        maxSpreads() {
-            return Math.ceil(this.products.length / 8) || 1;
+  name: 'CustomerMenuView',
+  setup() {
+    const cartStore = useCartStore();
+    return { cartStore };
+  },
+  data() {
+    return {
+      // Cấu hình hằng số nhập từ file config tập trung
+      SIZES,
+      DA_OPTIONS,
+      DUONG_OPTIONS,
+      TOPPINGS,
+
+      // Dữ liệu bàn & thực đơn
+      currentTable: null,
+      availableTables: [],
+      loadingTable: true,
+      categories: [],
+      products: [],
+      loadingProducts: true,
+      selectedCatId: 0,
+      searchKeyword: '',
+      defaultProductImg: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=600&auto=format&fit=crop',
+
+      // Modal Tùy chỉnh món (UC12)
+      showCustomModal: false,
+      customizingProduct: null,
+      selectedSize: SIZES[0],
+      selectedDa: DA_OPTIONS[0],
+      selectedDuong: DUONG_OPTIONS[0],
+      selectedToppings: [],
+      customQuantity: 1,
+      customNote: '',
+
+      // Giỏ hàng & Drawer (UC10, 11, 13, 14)
+      showCartDrawer: false,
+      voucherInput: '',
+      checkingVoucher: false,
+      voucherError: '',
+
+      // Màn hình Thanh toán (UC09, 15, 16, 17)
+      showCheckoutModal: false,
+      customerPhone: '',
+      customerName: '',
+      paymentMethod: 'VIETQR',
+      submittingOrder: false,
+      orderError: '',
+
+      // Màn hình Theo dõi đơn Realtime (UC19)
+      showTrackingModal: false,
+      activeOrderState: null,
+      pollingTimer: null,
+
+      // Trợ lý AI Barista (UC08)
+      showAiModal: false,
+      aiSessionId: null,
+      aiInputText: '',
+      aiLoading: false,
+      aiMessages: [
+        {
+          sender: 'ai',
+          text: 'Xin chào! Mình là Trợ lý AI Barista của CoffeeHub. Hôm nay bạn đang có tâm trạng thế nào, hoặc muốn thử hương vị cà phê đậm đà, kem béo ngọt ngào hay trà trái cây thanh mát giải nhiệt?'
         }
+      ],
+      quickChips: [
+        'Trời nắng nóng nên uống gì giải nhiệt?',
+        'Tư vấn cà phê kem béo ít ngọt',
+        'Trà trái cây thanh mát',
+        'Thức uống không có caffein'
+      ]
+    };
+  },
+  computed: {
+    filteredProducts() {
+      let list = this.products;
+      if (this.selectedCatId > 0) {
+        list = list.filter(p => Number(p.id_danh_muc) === Number(this.selectedCatId));
+      }
+      if (this.searchKeyword.trim() !== '') {
+        const kw = this.searchKeyword.toLowerCase().trim();
+        list = list.filter(p => p.ten_san_pham && p.ten_san_pham.toLowerCase().includes(kw));
+      }
+      return list;
     },
-    mounted() {
-        this.loadData();
-        window.addEventListener('scroll', this.onScroll, { passive: true });
-        document.addEventListener('keydown', this.onKeydown);
+
+    customUnitPrice() {
+      if (!this.customizingProduct) return 0;
+      const base = Number(this.customizingProduct.gia_ban) || 0;
+      const sizePhuThu = Number(this.selectedSize.gia) || 0;
+      const toppingsPhuThu = this.selectedToppings.reduce((sum, t) => sum + (Number(t.gia) || 0), 0);
+      return base + sizePhuThu + toppingsPhuThu;
     },
-    beforeUnmount() {
-        window.removeEventListener('scroll', this.onScroll);
-        document.removeEventListener('keydown', this.onKeydown);
+
+    activeVietQrUrl() {
+      if (!this.activeOrderState || !this.activeOrderState.order) return '';
+      const amount = this.activeOrderState.order.tong_tien;
+      const code = this.activeOrderState.order.ma_hoa_don;
+      return `https://img.vietqr.io/image/MB-06468111-compact2.png?amount=${amount}&addInfo=${encodeURIComponent(code)}&accountName=VO%20MINH%20THUAN`;
     },
-    methods: {
-        loadData() {
-            const token = localStorage.getItem('xs');
-            const headers = token ? { 'Authorization': `Bearer ${token}` } : {};
-            axios.get('http://127.0.0.1:8000/api/admin/san-pham/get-data', { headers })
-                .then(res => {
-                    if (res.data && res.data.data && res.data.data.length > 0) {
-                        this.products = res.data.data.filter(x => !x.deleted_at);
-                    } else {
-                        this.products = this.sampleProducts;
-                    }
-                })
-                .catch(() => { this.products = this.sampleProducts; });
 
-            axios.get('http://127.0.0.1:8000/api/admin/danh-muc/get-data', { headers })
-                .then(res => {
-                    if (res.data && res.data.data && res.data.data.length > 0) {
-                        this.categories = res.data.data;
-                    } else {
-                        this.categories = this.sampleCategories;
-                    }
-                })
-                .catch(() => { this.categories = this.sampleCategories; });
-        },
-
-        onScroll() {
-            this.scrolled = window.scrollY > 40;
-        },
-        onKeydown(e) {
-            if (e.key === 'Escape' && this.selectedItem) this.closeModal();
-        },
-        scrollToMenu() {
-            this.$refs.menuSection && this.$refs.menuSection.scrollIntoView({ behavior: 'smooth' });
-        },
-        openModal(item) {
-            this.selectedItem = item;
-            document.body.style.overflow = 'hidden';
-        },
-        closeModal() {
-            this.selectedItem = null;
-            document.body.style.overflow = '';
-        },
-
-        nextSpread() {
-            if (this.currentSpread < this.maxSpreads) this.triggerFlip(() => this.currentSpread++);
-        },
-        prevSpread() {
-            if (this.currentSpread > 0) this.triggerFlip(() => this.currentSpread--);
-        },
-        gotoSpread(s) {
-            this.triggerFlip(() => this.currentSpread = s);
-        },
-        triggerFlip(fn) {
-            this.isFlipping = true;
-            setTimeout(() => { fn(); this.isFlipping = false; }, 300);
-        },
-        getPageData(spreadIndex, side) {
-            const startIndex = (spreadIndex - 1) * 8 + (side === 'left' ? 0 : 4);
-            const items = this.products.slice(startIndex, startIndex + 4);
-            let categoryName = 'Thá»±c ÄÆ¡n';
-            if (items.length > 0) categoryName = this.getCategoryName(items[0].id_danh_muc);
-            return { categoryName, items };
-        },
-        getSpreadCategoryTitle(spreadIndex) {
-            if (spreadIndex === 0) return 'BĂ¬a Menu';
-            const data = this.getPageData(spreadIndex, 'left');
-            return data.categoryName || 'MĂ³n Ngon';
-        },
-        getCategoryName(id) {
-            const c = this.categories.find(x => x.id == id);
-            return c ? c.ten_danh_muc : 'Thá»©c Uá»‘ng';
-        },
-        countByCategory(id) {
-            return this.products.filter(x => x.id_danh_muc == id).length;
-        },
-        getCategoryIcon(name) {
-            if (!name) return 'fa-solid fa-star';
-            const n = name.toLowerCase();
-            if (n.includes('cĂ  phĂª') || n.includes('coffee')) return 'fa-solid fa-mug-hot';
-            if (n.includes('trĂ ') || n.includes('soda')) return 'fa-solid fa-leaf';
-            if (n.includes('Ä‘Ă¡ xay') || n.includes('frappe')) return 'fa-solid fa-snowflake';
-            if (n.includes('bĂ¡nh')) return 'fa-solid fa-cookie-bite';
-            return 'fa-solid fa-utensils';
-        },
-        formatVND(num) {
-            if (!num) return '0';
-            return Number(num).toLocaleString('vi-VN');
-        },
-        onImgError(e) {
-            e.target.src = this.defaultImage;
-        },
-        particleStyle(n) {
-            const size = (n % 3 + 1) * 4;
-            const left = ((n * 17 + 7) % 100);
-            const top = ((n * 23 + 13) % 100);
-            const dur = (n % 4 + 5) + 's';
-            const delay = (n * 0.4) + 's';
-            return {
-                width: size + 'px',
-                height: size + 'px',
-                left: left + '%',
-                top: top + '%',
-                animationDuration: dur,
-                animationDelay: delay,
-            };
-        }
+    trackingStep() {
+      if (!this.activeOrderState) return 1;
+      return this.activeOrderState.step || 1;
     }
+  },
+  mounted() {
+    this.detectAndInitTable();
+    this.fetchMenuData();
+
+    // Nếu đã có activeOrderId thì khởi động polling kiểm tra tiến độ
+    if (this.cartStore.activeOrderId) {
+      this.pollOrderStatus(this.cartStore.activeOrderId);
+    }
+  },
+  beforeUnmount() {
+    this.stopPolling();
+  },
+  methods: {
+    formatVND(val) {
+      return (Number(val) || 0).toLocaleString('vi-VN') + 'đ';
+    },
+
+    onImgError(e) {
+      e.target.src = this.defaultProductImg;
+    },
+
+    /**
+     * Nhận diện bàn từ URL (?ban=4 hoặc param) và khởi tạo
+     */
+    detectAndInitTable() {
+      this.loadingTable = true;
+      const queryBan = this.$route.query.ban || this.$route.query.id_ban || this.$route.query.table;
+
+      axios.get('http://127.0.0.1:8000/api/ban/public')
+        .then(res => {
+          this.availableTables = res.data.data || [];
+          if (queryBan) {
+            const found = this.availableTables.find(b => String(b.id) === String(queryBan) || b.ten_ban.toLowerCase().includes(String(queryBan).toLowerCase()));
+            if (found) {
+              this.currentTable = found;
+              this.cartStore.initTable(found.id, found.ten_ban);
+            } else {
+              // Bàn không hợp lệ
+              this.currentTable = null;
+            }
+          } else {
+            // Chưa có query bàn, kiểm tra localStorage
+            const savedBanId = localStorage.getItem('coffeehub_last_table_id');
+            if (savedBanId) {
+              const f = this.availableTables.find(b => String(b.id) === String(savedBanId));
+              if (f) {
+                this.currentTable = f;
+                this.cartStore.initTable(f.id, f.ten_ban);
+              }
+            }
+          }
+        })
+        .catch(err => {
+          console.error('Lỗi tải danh sách bàn:', err);
+        })
+        .finally(() => {
+          this.loadingTable = false;
+        });
+    },
+
+    selectTable(ban) {
+      this.currentTable = ban;
+      localStorage.setItem('coffeehub_last_table_id', ban.id);
+      this.cartStore.initTable(ban.id, ban.ten_ban);
+      this.$router.replace({ query: { ban: ban.id } }).catch(() => {});
+    },
+
+    /**
+     * Lấy danh mục và sản phẩm đang bán từ Backend thật
+     */
+    fetchMenuData() {
+      this.loadingProducts = true;
+      Promise.all([
+        axios.get('http://127.0.0.1:8000/api/menu/danh-muc'),
+        axios.get('http://127.0.0.1:8000/api/menu/public')
+      ])
+        .then(([catRes, prodRes]) => {
+          this.categories = catRes.data.data || [];
+          this.products = prodRes.data.data || [];
+        })
+        .catch(err => {
+          console.error('Lỗi tải thực đơn:', err);
+          if (this.$toast) this.$toast.error('Không thể tải thực đơn. Vui lòng thử lại!');
+        })
+        .finally(() => {
+          this.loadingProducts = false;
+        });
+    },
+
+    /**
+     * Mở modal tùy chỉnh món
+     */
+    openCustomizeModal(product) {
+      this.customizingProduct = product;
+      this.selectedSize = this.SIZES[0];
+      this.selectedDa = this.DA_OPTIONS[0];
+      this.selectedDuong = this.DUONG_OPTIONS[0];
+      this.selectedToppings = [];
+      this.customQuantity = 1;
+      this.customNote = '';
+      this.showCustomModal = true;
+    },
+
+    isToppingSelected(id) {
+      return this.selectedToppings.some(t => t.id === id);
+    },
+
+    toggleTopping(top) {
+      const idx = this.selectedToppings.findIndex(t => t.id === top.id);
+      if (idx > -1) {
+        this.selectedToppings.splice(idx, 1);
+      } else {
+        this.selectedToppings.push(top);
+      }
+    },
+
+    addCustomizedItemToCart() {
+      if (!this.currentTable) {
+        alert('Vui lòng quét hoặc chọn bàn trước khi thêm món!');
+        return;
+      }
+
+      const sizePhuThu = Number(this.selectedSize.gia) || 0;
+      const toppingsPhuThu = this.selectedToppings.reduce((sum, t) => sum + (Number(t.gia) || 0), 0);
+
+      const tuyChonSnapshot = {
+        size: {
+          ma: this.selectedSize.ma,
+          ten: this.selectedSize.ten,
+          gia: sizePhuThu
+        },
+        da: {
+          ma: this.selectedDa.ma,
+          ten: this.selectedDa.ten,
+          gia: 0
+        },
+        duong: {
+          ma: this.selectedDuong.ma,
+          ten: this.selectedDuong.ten,
+          gia: 0
+        },
+        toppings: this.selectedToppings.map(t => ({
+          id: t.id,
+          ten: t.ten,
+          gia: t.gia
+        })),
+        phu_thu: sizePhuThu + toppingsPhuThu
+      };
+
+      this.cartStore.addItem(
+        this.customizingProduct,
+        tuyChonSnapshot,
+        this.customQuantity,
+        this.customNote
+      );
+
+      this.showCustomModal = false;
+      if (this.$toast) {
+        this.$toast.success(`Đã thêm ${this.customQuantity}x ${this.customizingProduct.ten_san_pham} vào giỏ!`);
+      }
+    },
+
+    /**
+     * Kiểm tra và áp dụng mã giảm giá voucher (UC18)
+     */
+    checkAndApplyVoucher() {
+      const code = this.voucherInput.trim().toUpperCase();
+      if (!code) return;
+      this.checkingVoucher = true;
+      this.voucherError = '';
+
+      axios.post('http://127.0.0.1:8000/api/voucher/check', {
+        ma_voucher: code,
+        tong_tien: this.cartStore.subtotal
+      })
+        .then(res => {
+          if (res.data.status === 1) {
+            this.cartStore.applyVoucher({
+              ma_voucher: code,
+              so_tien_giam: res.data.so_tien_giam,
+              loai_giam: res.data.loai_giam,
+              so_giam_gia: res.data.so_giam_gia
+            });
+            if (this.$toast) this.$toast.success(res.data.message);
+          } else {
+            this.voucherError = res.data.message || 'Mã voucher không hợp lệ';
+          }
+        })
+        .catch(err => {
+          this.voucherError = err.response?.data?.message || 'Có lỗi xảy ra khi kiểm tra voucher';
+        })
+        .finally(() => {
+          this.checkingVoucher = false;
+        });
+    },
+
+    removeVoucher() {
+      this.cartStore.removeVoucher();
+      this.voucherInput = '';
+      this.voucherError = '';
+    },
+
+    openCheckoutModal() {
+      if (!this.currentTable) {
+        alert('Vui lòng quét hoặc chọn bàn!');
+        return;
+      }
+      if (this.cartStore.items.length === 0) {
+        alert('Giỏ hàng đang trống!');
+        return;
+      }
+      this.customerPhone = this.cartStore.customerInfo.phone || '';
+      this.customerName = this.cartStore.customerInfo.name || '';
+      this.orderError = '';
+      this.showCartDrawer = false;
+      this.showCheckoutModal = true;
+    },
+
+    /**
+     * Gửi đơn gọi món Pay-First lên Backend (UC09, 15, 16, 17)
+     */
+    submitOrder() {
+      this.submittingOrder = true;
+      this.orderError = '';
+
+      const payload = {
+        id_ban: this.currentTable.id,
+        items: this.cartStore.items.map(i => ({
+          id_san_pham: i.id_san_pham,
+          so_luong: i.so_luong,
+          don_gia: i.don_gia,
+          tuy_chon: i.tuy_chon,
+          ghi_chu: i.ghi_chu
+        })),
+        phuong_thuc: this.paymentMethod,
+        ma_voucher: this.cartStore.voucher ? this.cartStore.voucher.ma_voucher : null,
+        customer_phone: this.customerPhone.trim(),
+        customer_name: this.customerName.trim()
+      };
+
+      axios.post('http://127.0.0.1:8000/api/orders/qr-create', payload)
+        .then(res => {
+          if (res.data.status === 1) {
+            // Lưu active order và dọn giỏ hàng
+            this.cartStore.setActiveOrder(res.data);
+            this.cartStore.clearCart();
+            this.showCheckoutModal = false;
+
+            if (this.$toast) this.$toast.success(res.data.message);
+
+            // Bắt đầu polling tiến độ
+            this.pollOrderStatus(res.data.order_id);
+            this.showTrackingModal = true;
+          } else {
+            this.orderError = res.data.message || 'Lỗi đặt đơn hàng!';
+          }
+        })
+        .catch(err => {
+          this.orderError = err.response?.data?.message || 'Có lỗi xảy ra khi tạo đơn hàng!';
+        })
+        .finally(() => {
+          this.submittingOrder = false;
+        });
+    },
+
+    /**
+     * Polling theo dõi trạng thái đơn hàng (UC19)
+     */
+    pollOrderStatus(orderId) {
+      this.stopPolling();
+      const check = () => {
+        axios.get(`http://127.0.0.1:8000/api/orders/${orderId}/status`)
+          .then(res => {
+            if (res.data.status === 1) {
+              this.activeOrderState = res.data;
+            }
+          })
+          .catch(() => {});
+      };
+
+      check();
+      this.pollingTimer = setInterval(check, 3500);
+    },
+
+    stopPolling() {
+      if (this.pollingTimer) {
+        clearInterval(this.pollingTimer);
+        this.pollingTimer = null;
+      }
+    },
+
+    /**
+     * Trợ lý AI Barista (UC08)
+     */
+    openAiWithPrompt(prompt) {
+      this.showAiModal = true;
+      this.sendAiMessage(prompt);
+    },
+
+    sendAiMessage(customText) {
+      const text = customText || this.aiInputText.trim();
+      if (!text || this.aiLoading) return;
+
+      this.aiMessages.push({
+        sender: 'user',
+        text
+      });
+      this.aiInputText = '';
+      this.aiLoading = true;
+
+      this.$nextTick(() => {
+        this.scrollChatToBottom();
+      });
+
+      axios.post('http://127.0.0.1:8000/api/ai/chat', {
+        message: text,
+        session_id: this.aiSessionId,
+        table_id: this.currentTable ? this.currentTable.id : null
+      })
+        .then(res => {
+          if (res.data.status === 1) {
+            if (res.data.session_id) {
+              this.aiSessionId = res.data.session_id;
+            }
+            this.aiMessages.push({
+              sender: 'ai',
+              text: res.data.reply || 'Dưới đây là một số gợi ý phù hợp nhất với yêu cầu của bạn:',
+              recommendations: res.data.recommendations || []
+            });
+          } else {
+            this.aiMessages.push({
+              sender: 'ai',
+              text: 'Xin lỗi bạn, AI Barista đang bận một chút. Bạn có thể chọn các món ngon trên thực đơn nhé!'
+            });
+          }
+        })
+        .catch(() => {
+          this.aiMessages.push({
+            sender: 'ai',
+            text: 'Không thể kết nối tới máy chủ AI lúc này. Hãy chọn món theo danh mục trên màn hình nhé!'
+          });
+        })
+        .finally(() => {
+          this.aiLoading = false;
+          this.$nextTick(() => {
+            this.scrollChatToBottom();
+          });
+        });
+    },
+
+    scrollChatToBottom() {
+      if (this.$refs.chatStream) {
+        this.$refs.chatStream.scrollTop = this.$refs.chatStream.scrollHeight;
+      }
+    },
+
+    pickAiRecommended(rec) {
+      this.showAiModal = false;
+      const full = this.products.find(p => p.id === rec.id) || rec;
+      this.openCustomizeModal(full);
+    }
+  }
 };
 </script>
 
 <style scoped>
-/* ============================================================
-   CH = CoffeeHub Design System
-   Premium Dark Luxury Theme
-   ============================================================ */
+/* ======================================================== */
+/* BRIGHT LUXURY CAFE THEME (LIGHT & ANIMATED)              */
+/* CoffeeHub AI - CDIO 4                                    */
+/* ======================================================== */
 
-/* ---- Google Fonts ---- */
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;0,800;0,900;1,600;1,700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
-
-/* ---- CSS Variables ---- */
-.ch-app {
-    --amber: #f59e0b;
-    --amber-light: #fbbf24;
-    --amber-dark: #d97706;
-    --amber-deep: #b45309;
-    --amber-cream: #fef3c7;
-    --gold-gradient: linear-gradient(135deg, #fbbf24 0%, #f59e0b 40%, #d97706 70%, #b45309 100%);
-    --dark-bg: #0c0907;
-    --dark-card: #12100d;
-    --dark-surface: #1a1208;
-    --dark-border: rgba(245, 158, 11, 0.15);
-    --dark-border-hover: rgba(245, 158, 11, 0.45);
-    --glass-bg: rgba(255, 255, 255, 0.04);
-    --glass-border: rgba(255, 255, 255, 0.08);
-    --text-primary: #f8f4ef;
-    --text-secondary: rgba(248, 244, 239, 0.65);
-    --text-muted: rgba(248, 244, 239, 0.38);
-    --font-serif: 'Playfair Display', Georgia, serif;
-    --font-sans: 'Plus Jakarta Sans', system-ui, sans-serif;
-    --radius-sm: 10px;
-    --radius-md: 16px;
-    --radius-lg: 24px;
-    --radius-xl: 32px;
-    --shadow-amber: 0 0 30px rgba(245, 158, 11, 0.25);
-    --shadow-card: 0 20px 60px rgba(0, 0, 0, 0.6);
-    --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-
-    font-family: var(--font-sans);
-    background-color: var(--dark-bg);
-    color: var(--text-primary);
-    min-height: 100vh;
-    position: relative;
-    overflow-x: hidden;
+.ch-customer-app {
+  background: #f8fafc;
+  background-image: radial-gradient(ellipse at 20% 0%, rgba(254, 243, 199, 0.45) 0%, rgba(255, 255, 255, 0.8) 50%, #f8fafc 100%);
+  min-height: 100vh;
+  font-family: 'Outfit', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  color: #1e293b;
+  padding-bottom: 95px;
 }
 
-/* ============================================================
-   AMBIENT PARTICLES
-   ============================================================ */
-.ch-particles {
-    position: fixed;
-    inset: 0;
-    pointer-events: none;
-    z-index: 0;
-    overflow: hidden;
-}
-.ch-particle {
-    position: absolute;
-    border-radius: 50%;
-    background: radial-gradient(circle, rgba(245, 158, 11, 0.35) 0%, transparent 70%);
-    animation: ch-float linear infinite;
-    will-change: transform, opacity;
-}
-@keyframes ch-float {
-    0%   { transform: translateY(0px) scale(1); opacity: 0.4; }
-    50%  { transform: translateY(-30px) scale(1.2); opacity: 0.7; }
-    100% { transform: translateY(0px) scale(1); opacity: 0.4; }
+.max-w-app {
+  max-width: 1024px;
+  margin: 0 auto;
 }
 
-.ch-glow-blob {
-    position: fixed;
-    pointer-events: none;
-    border-radius: 50%;
-    filter: blur(100px);
-    z-index: 0;
-}
-.ch-glow-1 {
-    width: 600px; height: 600px;
-    background: radial-gradient(circle, rgba(245, 158, 11, 0.12) 0%, transparent 70%);
-    top: -100px; right: -200px;
-    animation: ch-glow-pulse 8s ease-in-out infinite;
-}
-.ch-glow-2 {
-    width: 400px; height: 400px;
-    background: radial-gradient(circle, rgba(180, 83, 9, 0.1) 0%, transparent 70%);
-    bottom: 20%; left: -100px;
-    animation: ch-glow-pulse 10s ease-in-out infinite reverse;
-}
-@keyframes ch-glow-pulse {
-    0%, 100% { opacity: 0.6; transform: scale(1); }
-    50%       { opacity: 1;   transform: scale(1.15); }
+/* BRAND ACCENT COLORS */
+.text-amber {
+  color: #d97706 !important;
 }
 
-/* ============================================================
-   NAVBAR
-   ============================================================ */
-.ch-navbar {
-    position: sticky;
-    top: 0;
-    z-index: 100;
-    padding: 0 24px;
-    transition: var(--transition);
-    background: transparent;
+.bg-amber {
+  background-color: #d97706 !important;
+  color: #ffffff !important;
 }
-.ch-navbar--scrolled {
-    background: rgba(12, 9, 7, 0.92);
-    backdrop-filter: blur(24px);
-    -webkit-backdrop-filter: blur(24px);
-    border-bottom: 1px solid var(--dark-border);
-    box-shadow: 0 4px 40px rgba(0, 0, 0, 0.5);
+
+.btn-amber {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  color: #ffffff;
+  border: none;
+  font-weight: 600;
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
-.ch-navbar__inner {
-    max-width: 1280px;
-    margin: 0 auto;
-    height: 72px;
-    display: flex;
+
+.btn-amber:hover {
+  background: linear-gradient(135deg, #d97706 0%, #b45309 100%);
+  color: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.3);
+}
+
+.btn-amber:active {
+  transform: scale(0.96);
+}
+
+.btn-outline-amber {
+  border: 1.5px solid #d97706;
+  color: #d97706;
+  background: #fffbeb;
+  font-weight: 600;
+  transition: all 0.2s ease;
+}
+
+.btn-outline-amber:hover {
+  background: #d97706;
+  color: #ffffff;
+}
+
+.bg-amber-light {
+  background-color: #fffbeb !important;
+}
+
+.bg-amber-subtle {
+  background-color: #fef3c7 !important;
+}
+
+.border-amber {
+  border-color: #f59e0b !important;
+}
+
+.border-amber-subtle {
+  border-color: #fde68a !important;
+}
+
+.shadow-xs {
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* TOP HEADER (FROSTED GLASS) */
+.ch-top-header {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(226, 232, 240, 0.9);
+  box-shadow: 0 4px 20px -2px rgba(15, 23, 42, 0.04);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  transition: all 0.3s ease;
+}
+
+.ch-logo-badge {
+  width: 42px;
+  height: 42px;
+  border-radius: 14px;
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  box-shadow: 0 2px 10px rgba(245, 158, 11, 0.2);
+  transition: transform 0.2s ease;
+}
+
+.ch-logo-badge:hover {
+  transform: rotate(-6deg) scale(1.05);
+}
+
+.ch-brand-title {
+  font-size: 1.25rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  color: #0f172a;
+}
+
+.ch-table-live-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #10b981;
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+  animation: live-pulse 1.8s infinite;
+}
+
+@keyframes live-pulse {
+  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+  70% { transform: scale(1.1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+}
+
+.ch-brand-sub {
+  font-size: 0.8rem;
+  display: block;
+}
+
+.ch-cart-btn {
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.35);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ch-badge-bounce {
+  animation: badge-pop 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+@keyframes badge-pop {
+  0% { transform: translate(-50%, -50%) scale(0.5); }
+  70% { transform: translate(-50%, -50%) scale(1.25); }
+  100% { transform: translate(-50%, -50%) scale(1); }
+}
+
+/* ACTIVE ORDER BANNER */
+.ch-active-banner {
+  background: linear-gradient(135deg, #ffffff 0%, #fffbeb 100%);
+  border: 1px solid #fed7aa;
+  border-left: 5px solid #f59e0b;
+  border-radius: 18px;
+  box-shadow: 0 6px 20px rgba(245, 158, 11, 0.08);
+  transition: transform 0.2s ease;
+}
+
+.ch-active-banner:hover {
+  transform: translateY(-2px);
+}
+
+.ch-active-icon-box {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  background: #fef3c7;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.live-dot-green {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #10b981;
+  animation: live-pulse 1.5s infinite;
+}
+
+/* HERO BANNER & AI TEASER */
+.ch-hero-card {
+  background: linear-gradient(135deg, #ffffff 0%, #fffbeb 50%, #fef3c7 100%);
+  border: 1px solid #fde68a;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px -5px rgba(217, 119, 6, 0.1);
+  position: relative;
+  overflow: hidden;
+}
+
+.ch-hero-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #451a03;
+  line-height: 1.3;
+  letter-spacing: -0.3px;
+}
+
+.ch-hero-desc {
+  color: #78350f !important;
+  font-weight: 500;
+}
+
+.btn-hero-chip {
+  background: #ffffff;
+  color: #78350f;
+  border: 1px solid #fde68a;
+  box-shadow: 0 2px 6px rgba(217, 119, 6, 0.08);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.btn-hero-chip:hover {
+  background: #fef3c7;
+  color: #451a03;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(217, 119, 6, 0.15);
+}
+
+.btn-hero-chip:active {
+  transform: scale(0.95);
+}
+
+.ch-hero-art {
+  position: absolute;
+  right: -10px;
+  bottom: -20px;
+  font-size: 8rem;
+  color: rgba(245, 158, 11, 0.08);
+  pointer-events: none;
+  animation: float-slow 4s ease-in-out infinite alternate;
+}
+
+@keyframes float-slow {
+  0% { transform: translateY(0) rotate(0deg); }
+  100% { transform: translateY(-8px) rotate(4deg); }
+}
+
+/* SEARCH BAR */
+.ch-search-bar .input-group {
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.ch-search-bar .input-group:focus-within {
+  border-color: #f59e0b !important;
+  box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.18) !important;
+}
+
+/* CATEGORY PILLS */
+.cat-pill {
+  transition: all 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  font-weight: 600;
+}
+
+.cat-pill:hover {
+  transform: translateY(-1px);
+}
+
+.cat-pill.btn-amber {
+  box-shadow: 0 4px 14px rgba(217, 119, 6, 0.28);
+  transform: scale(1.02);
+}
+
+/* PRODUCT CARD (LUXURY HOVER LIFT) */
+.ch-product-card {
+  background: #ffffff;
+  border: 1px solid #f1f5f9 !important;
+  border-radius: 18px !important;
+  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.04);
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.25s ease;
+}
+
+.ch-product-card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 16px 36px rgba(217, 119, 6, 0.14) !important;
+  border-color: #fed7aa !important;
+}
+
+.ch-card-img-wrap {
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: #f8fafc;
+  cursor: pointer;
+  border-radius: 18px 18px 0 0;
+}
+
+.ch-product-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ch-product-card:hover .ch-product-img {
+  transform: scale(1.08);
+}
+
+.ch-product-title {
+  font-size: 0.95rem;
+  color: #0f172a;
+  display: -webkit-box;
+  -webkit-line-clamp: 1;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.ch-product-desc {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  line-height: 1.35;
+  color: #64748b !important;
+}
+
+.ch-add-btn {
+  width: 34px;
+  height: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  box-shadow: 0 3px 10px rgba(217, 119, 6, 0.28);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ch-add-btn:hover {
+  transform: scale(1.1);
+}
+
+.ch-add-btn:active {
+  transform: scale(0.9);
+}
+
+/* FLOATING AI BARISTA BUTTON (PULSING & FLOATING) */
+.ch-floating-ai-btn {
+  position: fixed;
+  bottom: 24px;
+  right: 20px;
+  z-index: 1050;
+  background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
+  color: #ffffff;
+  border: 2px solid #fef08a;
+  border-radius: 50px;
+  padding: 12px 18px;
+  display: flex;
+  align-items: center;
+  cursor: pointer;
+  box-shadow: 0 8px 25px rgba(234, 88, 12, 0.38);
+  animation: float-bob 3s ease-in-out infinite;
+  transition: all 0.2s ease;
+}
+
+.ch-floating-ai-btn:hover {
+  transform: scale(1.08) translateY(-2px);
+  box-shadow: 0 12px 30px rgba(234, 88, 12, 0.5);
+}
+
+@keyframes float-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-7px); }
+}
+
+.pulse-amber {
+  animation: pulse-border 2s infinite;
+}
+
+@keyframes pulse-border {
+  0% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0.5); }
+  70% { box-shadow: 0 0 0 10px rgba(217, 119, 6, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(217, 119, 6, 0); }
+}
+
+/* MODAL & BOTTOM SHEETS */
+.ch-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  z-index: 1060;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: modal-fade-in 0.2s ease-out;
+}
+
+@keyframes modal-fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@media (min-width: 576px) {
+  .ch-modal-backdrop {
     align-items: center;
-    gap: 20px;
+  }
 }
 
-/* Brand */
-.ch-brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    flex-shrink: 0;
-    text-decoration: none;
-}
-.ch-brand__icon {
-    width: 42px;
-    height: 42px;
-    border-radius: 12px;
-    background: var(--gold-gradient);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    flex-shrink: 0;
-    box-shadow: var(--shadow-amber);
-}
-.ch-brand__icon svg { width: 22px; height: 22px; }
-.ch-brand__icon--sm { width: 32px; height: 32px; border-radius: 8px; }
-.ch-brand__icon--sm svg { width: 16px; height: 16px; }
-.ch-brand__text { display: flex; flex-direction: column; line-height: 1.2; }
-.ch-brand__name {
-    font-family: var(--font-serif);
-    font-size: 1.35rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    letter-spacing: 0.5px;
-}
-.ch-brand__accent { color: var(--amber); }
-.ch-brand__tagline {
-    font-size: 0.68rem;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    font-weight: 500;
+.ch-modal-sheet {
+  background: #ffffff;
+  width: 100%;
+  max-width: 540px;
+  border-radius: 24px 24px 0 0;
+  overflow: hidden;
+  box-shadow: 0 -10px 40px rgba(15, 23, 42, 0.12);
+  animation: slide-up 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Search */
-.ch-search {
-    flex: 1;
-    max-width: 440px;
-    position: relative;
-    margin: 0 auto;
-}
-.ch-search__icon {
-    position: absolute;
-    left: 16px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-muted);
-    font-size: 0.9rem;
-    transition: color 0.2s;
-    pointer-events: none;
-}
-.ch-search--active .ch-search__icon { color: var(--amber); }
-.ch-search__input {
-    width: 100%;
-    height: 44px;
-    padding: 0 44px 0 44px;
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: 100px;
-    color: var(--text-primary);
-    font-family: var(--font-sans);
-    font-size: 0.9rem;
-    font-weight: 500;
-    outline: none;
-    transition: var(--transition);
-}
-.ch-search__input::placeholder { color: var(--text-muted); }
-.ch-search__input:focus,
-.ch-search--active .ch-search__input {
-    background: rgba(245, 158, 11, 0.06);
-    border-color: rgba(245, 158, 11, 0.4);
-    box-shadow: 0 0 0 3px rgba(245, 158, 11, 0.1);
-}
-.ch-search__clear {
-    position: absolute;
-    right: 12px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 24px; height: 24px;
-    border-radius: 50%;
-    background: var(--glass-bg);
-    border: none;
-    color: var(--text-muted);
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.75rem;
-    transition: var(--transition);
-    padding: 0;
-}
-.ch-search__clear:hover { background: rgba(245, 158, 11, 0.15); color: var(--amber); }
-
-/* Nav Actions */
-.ch-nav-actions { display: flex; align-items: center; gap: 12px; flex-shrink: 0; }
-.ch-view-toggle {
-    display: flex;
-    background: var(--glass-bg);
-    border: 1px solid var(--glass-border);
-    border-radius: 100px;
-    padding: 4px;
-    gap: 4px;
-}
-.ch-view-btn {
-    width: 34px; height: 34px;
-    border-radius: 100px;
-    border: none;
-    background: transparent;
-    color: var(--text-muted);
-    cursor: pointer;
-    transition: var(--transition);
-    display: flex; align-items: center; justify-content: center;
-    font-size: 0.9rem;
-    padding: 0;
-}
-.ch-view-btn.active {
-    background: var(--gold-gradient);
-    color: #fff;
-    box-shadow: 0 2px 10px rgba(245, 158, 11, 0.35);
-}
-.ch-view-btn:hover:not(.active) { color: var(--amber); background: rgba(245, 158, 11, 0.08); }
-
-.ch-badge-info {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    padding: 8px 14px;
-    background: var(--glass-bg);
-    border: 1px solid var(--dark-border);
-    border-radius: 100px;
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--amber-light);
-    white-space: nowrap;
-}
-.ch-badge-info i { color: var(--amber); font-size: 0.75rem; }
-
-/* ============================================================
-   HERO SECTION
-   ============================================================ */
-.ch-hero {
-    position: relative;
-    z-index: 1;
-    min-height: 88vh;
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 80px 32px 60px;
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    align-items: center;
-    gap: 60px;
-}
-.ch-hero__label {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    background: rgba(245, 158, 11, 0.1);
-    border: 1px solid rgba(245, 158, 11, 0.25);
-    border-radius: 100px;
-    padding: 8px 18px;
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: var(--amber-light);
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-bottom: 28px;
-}
-.ch-pulsedot {
-    width: 8px; height: 8px;
-    border-radius: 50%;
-    background: var(--amber);
-    box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.5);
-    animation: ch-pulse 2s ease-in-out infinite;
-}
-@keyframes ch-pulse {
-    0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.5); }
-    50%       { box-shadow: 0 0 0 8px rgba(245, 158, 11, 0); }
+@media (min-width: 576px) {
+  .ch-modal-sheet {
+    border-radius: 24px;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.15);
+  }
 }
 
-.ch-hero__title {
-    font-family: var(--font-serif);
-    font-size: clamp(2.8rem, 5vw, 4.5rem);
-    font-weight: 900;
-    line-height: 1.1;
-    color: var(--text-primary);
-    margin-bottom: 24px;
-}
-.ch-gradient-text {
-    background: var(--gold-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-}
-.ch-hero__sub {
-    font-size: 1.05rem;
-    color: var(--text-secondary);
-    line-height: 1.7;
-    max-width: 480px;
-    margin-bottom: 40px;
-    font-weight: 400;
+.ch-cart-drawer {
+  background: #ffffff;
+  width: 100%;
+  max-width: 480px;
+  height: 90vh;
+  border-radius: 24px 24px 0 0;
+  overflow: hidden;
+  box-shadow: 0 -10px 40px rgba(15, 23, 42, 0.12);
+  animation: slide-up 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.ch-hero__stats {
-    display: flex;
-    gap: 32px;
-    margin-bottom: 44px;
-}
-.ch-stat { display: flex; flex-direction: column; }
-.ch-stat__num {
-    font-family: var(--font-serif);
-    font-size: 2rem;
-    font-weight: 800;
-    background: var(--gold-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    line-height: 1;
-    margin-bottom: 4px;
-}
-.ch-stat__label {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-weight: 600;
+@media (min-width: 576px) {
+  .ch-cart-drawer {
+    height: 85vh;
+    border-radius: 24px;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.15);
+  }
 }
 
-/* CTA Button */
-.ch-btn-primary {
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    background: var(--gold-gradient);
-    color: #1a0a00;
-    border: none;
-    border-radius: 100px;
-    padding: 14px 32px;
-    font-family: var(--font-sans);
-    font-size: 1rem;
-    font-weight: 800;
-    cursor: pointer;
-    transition: var(--transition);
-    letter-spacing: 0.3px;
-    text-transform: uppercase;
-    box-shadow: 0 8px 30px rgba(245, 158, 11, 0.4);
-}
-.ch-btn-primary:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 16px 40px rgba(245, 158, 11, 0.55);
-}
-.ch-btn-primary:active { transform: translateY(0); }
-.ch-btn-primary--lg { padding: 16px 40px; font-size: 1.05rem; }
-
-.ch-hero__cta {
-    display: inline-flex;
-    align-items: center;
-    gap: 12px;
-    background: var(--gold-gradient);
-    color: #1a0a00;
-    border: none;
-    border-radius: 100px;
-    padding: 16px 36px;
-    font-family: var(--font-sans);
-    font-size: 1.05rem;
-    font-weight: 800;
-    cursor: pointer;
-    transition: var(--transition);
-    box-shadow: 0 8px 30px rgba(245, 158, 11, 0.4);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-.ch-hero__cta:hover {
-    transform: translateY(-4px);
-    box-shadow: 0 20px 50px rgba(245, 158, 11, 0.55);
-}
-.ch-hero__cta i { animation: ch-bounce 1.5s ease-in-out infinite; }
-@keyframes ch-bounce {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(5px); }
+/* MODAL DIALOG (CHECKOUT & TRACKING FIX FOR WIDE-SCREEN STRETCH) */
+.ch-modal-dialog {
+  background: #ffffff;
+  width: 92%;
+  max-width: 480px !important;
+  margin: auto !important;
+  border-radius: 24px !important;
+  box-shadow: 0 25px 60px -15px rgba(15, 23, 42, 0.25) !important;
+  border: 1px solid rgba(226, 232, 240, 0.8);
+  animation: modal-pop 0.28s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Hero Visual */
-.ch-hero__visual {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    position: relative;
-    height: 500px;
-}
-.ch-hero__ring {
-    position: absolute;
-    border-radius: 50%;
-    border: 1px solid rgba(245, 158, 11, 0.2);
-    animation: ch-spin linear infinite;
-}
-.ch-hero__ring--outer  { width: 420px; height: 420px; animation-duration: 30s; }
-.ch-hero__ring--middle { width: 320px; height: 320px; animation-duration: 20s; border-color: rgba(245, 158, 11, 0.3); border-style: dashed; animation-direction: reverse; }
-.ch-hero__ring--inner  { width: 220px; height: 220px; animation-duration: 15s; border-color: rgba(245, 158, 11, 0.4); }
-@keyframes ch-spin { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-
-.ch-hero__emblem {
-    width: 140px; height: 140px;
-    background: var(--glass-bg);
-    backdrop-filter: blur(20px);
-    border: 2px solid rgba(245, 158, 11, 0.3);
-    border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    color: var(--amber);
-    box-shadow: 0 0 60px rgba(245, 158, 11, 0.2), inset 0 0 30px rgba(245, 158, 11, 0.05);
-    z-index: 2;
-    animation: ch-emblem-float 4s ease-in-out infinite;
-}
-.ch-hero__emblem svg { width: 64px; height: 64px; }
-@keyframes ch-emblem-float {
-    0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-12px); }
+@keyframes modal-pop {
+  0% { transform: scale(0.92) translateY(20px); opacity: 0; }
+  100% { transform: scale(1) translateY(0); opacity: 1; }
 }
 
-/* Floating badges */
-.ch-float-badge {
-    position: absolute;
-    background: var(--glass-bg);
-    backdrop-filter: blur(16px);
-    border: 1px solid var(--dark-border-hover);
-    border-radius: 100px;
-    padding: 8px 16px;
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: var(--amber-light);
-    white-space: nowrap;
-    display: flex; align-items: center; gap: 6px;
-    z-index: 3;
-}
-.ch-float-badge i { color: var(--amber); }
-.ch-float-badge--1 { top: 80px; left: -20px; animation: ch-badge-float1 5s ease-in-out infinite; }
-.ch-float-badge--2 { top: 60px; right: -10px; animation: ch-badge-float2 6s ease-in-out infinite; }
-.ch-float-badge--3 { bottom: 90px; left: 10px; animation: ch-badge-float3 4.5s ease-in-out infinite; }
-@keyframes ch-badge-float1 { 0%,100%{transform:translateY(0) rotate(-3deg)} 50%{transform:translateY(-10px) rotate(3deg)} }
-@keyframes ch-badge-float2 { 0%,100%{transform:translateY(0) rotate(4deg)} 50%{transform:translateY(-14px) rotate(-2deg)} }
-@keyframes ch-badge-float3 { 0%,100%{transform:translateY(0) rotate(-2deg)} 50%{transform:translateY(-8px) rotate(4deg)} }
-
-/* ============================================================
-   FILTER STRIP
-   ============================================================ */
-.ch-filter {
-    position: sticky;
-    top: 72px;
-    z-index: 90;
-    background: rgba(12, 9, 7, 0.88);
-    backdrop-filter: blur(20px);
-    border-top: 1px solid var(--dark-border);
-    border-bottom: 1px solid var(--dark-border);
-    padding: 16px 32px;
-}
-.ch-filter__inner {
-    max-width: 1280px;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    flex-wrap: wrap;
-}
-.ch-filter__scroll {
-    display: flex;
-    gap: 8px;
-    overflow-x: auto;
-    padding-bottom: 4px;
-    flex: 1;
-    scrollbar-width: none;
-}
-.ch-filter__scroll::-webkit-scrollbar { display: none; }
-
-.ch-filter-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    padding: 8px 18px;
-    border-radius: 100px;
-    border: 1px solid var(--dark-border);
-    background: var(--glass-bg);
-    color: var(--text-secondary);
-    font-family: var(--font-sans);
-    font-size: 0.85rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--transition);
-    white-space: nowrap;
-    flex-shrink: 0;
-}
-.ch-filter-btn:hover {
-    border-color: rgba(245, 158, 11, 0.4);
-    color: var(--amber-light);
-    background: rgba(245, 158, 11, 0.06);
-}
-.ch-filter-btn.active {
-    background: var(--gold-gradient);
-    border-color: transparent;
-    color: #1a0a00;
-    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.35);
-}
-.ch-filter-btn.active .ch-filter-count {
-    background: rgba(0,0,0,0.15);
-    color: #1a0a00;
-}
-.ch-filter-count {
-    background: rgba(245, 158, 11, 0.12);
-    color: var(--amber);
-    border-radius: 100px;
-    padding: 1px 8px;
-    font-size: 0.72rem;
-    font-weight: 700;
+.ch-checkout-summary-box {
+  background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+  border: 1.5px dashed #fde68a;
 }
 
-.ch-filter__result-info {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-size: 0.82rem;
-    color: var(--text-muted);
-    white-space: nowrap;
-    flex-shrink: 0;
-}
-.ch-filter__result-info b { color: var(--amber-light); }
-.ch-filter__search-tag {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: rgba(245, 158, 11, 0.1);
-    border: 1px solid rgba(245, 158, 11, 0.25);
-    border-radius: 100px;
-    padding: 3px 10px;
-    color: var(--amber-light);
-}
-.ch-filter__clear-tag {
-    background: none; border: none;
-    color: var(--text-muted);
-    cursor: pointer; padding: 0;
-    font-size: 0.75rem;
-    line-height: 1;
-    transition: color 0.2s;
-}
-.ch-filter__clear-tag:hover { color: var(--amber); }
-
-/* ============================================================
-   GRID SECTION
-   ============================================================ */
-.ch-grid-section {
-    position: relative;
-    z-index: 1;
-    max-width: 1280px;
-    margin: 0 auto;
-    padding: 48px 32px 80px;
+@keyframes slide-up {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }
 
-.ch-empty {
-    text-align: center;
-    padding: 100px 24px;
-}
-.ch-empty__icon {
-    font-size: 4rem;
-    color: var(--text-muted);
-    margin-bottom: 24px;
-    opacity: 0.5;
-}
-.ch-empty__title {
-    font-family: var(--font-serif);
-    font-size: 1.6rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin-bottom: 12px;
-}
-.ch-empty__sub { color: var(--text-secondary); margin-bottom: 32px; }
-
-.ch-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 24px;
+.ch-cart-thumb {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 12px;
 }
 
-/* PRODUCT CARD */
-.ch-card {
-    background: var(--dark-card);
-    border: 1px solid var(--dark-border);
-    border-radius: var(--radius-lg);
-    overflow: hidden;
-    cursor: pointer;
-    transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
-                box-shadow 0.4s ease,
-                border-color 0.3s ease;
-    animation: ch-card-in 0.5s both;
-    animation-delay: var(--delay);
-    display: flex;
-    flex-direction: column;
-}
-@keyframes ch-card-in {
-    from { opacity: 0; transform: translateY(24px); }
-    to   { opacity: 1; transform: translateY(0); }
-}
-.ch-card:hover {
-    transform: translateY(-10px) scale(1.02);
-    box-shadow: var(--shadow-card), var(--shadow-amber);
-    border-color: rgba(245, 158, 11, 0.5);
+.smaller {
+  font-size: 0.75rem;
 }
 
-.ch-card__img-wrap {
-    position: relative;
-    height: 220px;
-    overflow: hidden;
-    background: #1a1208;
-}
-.ch-card__img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.6s ease;
-    display: block;
-}
-.ch-card:hover .ch-card__img { transform: scale(1.12); }
-.ch-card__img-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, rgba(12, 9, 7, 0.7) 0%, transparent 50%);
-    pointer-events: none;
-}
-.ch-card__badges {
-    position: absolute;
-    top: 12px; left: 12px;
-    z-index: 2;
-}
-.ch-card__size-badge {
-    position: absolute;
-    top: 12px; right: 12px;
-    z-index: 2;
-}
-.ch-badge {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 100px;
-    font-size: 0.72rem;
-    font-weight: 700;
-    letter-spacing: 0.3px;
-}
-.ch-badge--cat {
-    background: rgba(12, 9, 7, 0.85);
-    backdrop-filter: blur(10px);
-    color: var(--amber-light);
-    border: 1px solid rgba(245, 158, 11, 0.35);
-}
-.ch-badge--size {
-    background: rgba(255, 255, 255, 0.12);
-    backdrop-filter: blur(10px);
-    color: var(--text-primary);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-}
-.ch-badge--lg { padding: 6px 14px; font-size: 0.82rem; }
-
-.ch-card__hover-action {
-    position: absolute;
-    inset: 0;
-    background: rgba(12, 9, 7, 0.5);
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 0;
-    transition: opacity 0.35s ease;
-    z-index: 3;
-}
-.ch-card:hover .ch-card__hover-action { opacity: 1; }
-.ch-card__eye-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
-    background: var(--gold-gradient);
-    color: #1a0a00;
-    border-radius: 100px;
-    padding: 10px 22px;
-    font-weight: 800;
-    font-size: 0.9rem;
-    transform: scale(0.85);
-    transition: transform 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
-}
-.ch-card:hover .ch-card__eye-btn { transform: scale(1); }
-
-.ch-card__body {
-    padding: 20px;
-    display: flex;
-    flex-direction: column;
-    flex: 1;
-    background: linear-gradient(180deg, #12100d 0%, #0f0d0a 100%);
-}
-.ch-card__name {
-    font-family: var(--font-serif);
-    font-size: 1.1rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: 0 0 8px;
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-}
-.ch-card__desc {
-    font-size: 0.82rem;
-    color: var(--text-secondary);
-    line-height: 1.55;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    margin: 0 0 16px;
-    min-height: 2.6em;
-}
-.ch-card__footer {
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-between;
-    margin-top: auto;
-    padding-top: 14px;
-    border-top: 1px solid var(--dark-border);
-    gap: 10px;
-}
-.ch-card__price { display: flex; flex-direction: column; }
-.ch-card__price-label {
-    font-size: 0.7rem;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.8px;
-    font-weight: 600;
-    margin-bottom: 2px;
-}
-.ch-card__price-value {
-    font-family: var(--font-serif);
-    font-size: 1.4rem;
-    font-weight: 800;
-    background: var(--gold-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    line-height: 1;
-}
-.ch-card__price-value small { font-size: 0.7em; font-weight: 600; }
-
-.ch-card__cta-wrap { flex-shrink: 0; }
-.ch-card__cta {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    padding: 8px 16px;
-    background: rgba(245, 158, 11, 0.1);
-    border: 1px solid rgba(245, 158, 11, 0.3);
-    border-radius: 100px;
-    color: var(--amber-light);
-    font-family: var(--font-sans);
-    font-size: 0.8rem;
-    font-weight: 700;
-    cursor: pointer;
-    transition: var(--transition);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-.ch-card__cta:hover {
-    background: var(--gold-gradient);
-    color: #1a0a00;
-    border-color: transparent;
-    box-shadow: 0 4px 15px rgba(245, 158, 11, 0.35);
+.cursor-pointer {
+  cursor: pointer;
 }
 
-/* ============================================================
-   BOOK SECTION
-   ============================================================ */
-.ch-book-section {
-    position: relative;
-    z-index: 1;
-    padding: 40px 24px 80px;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
+/* OPTION CARD HOVER */
+.ch-option-card {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-.ch-book-controls {
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    margin-bottom: 28px;
-}
-.ch-book-nav-btn {
-    width: 52px; height: 52px;
-    border-radius: 50%;
-    background: var(--glass-bg);
-    border: 1px solid var(--dark-border-hover);
-    color: var(--amber-light);
-    font-size: 1rem;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: var(--transition);
-    flex-shrink: 0;
-    padding: 0;
-}
-.ch-book-nav-btn:hover:not(:disabled) {
-    background: var(--gold-gradient);
-    color: #1a0a00;
-    border-color: transparent;
-    box-shadow: 0 8px 25px rgba(245, 158, 11, 0.4);
-    transform: scale(1.1);
-}
-.ch-book-nav-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-.ch-book-page-info { text-align: center; }
-.ch-book-page-title {
-    display: block;
-    font-family: var(--font-serif);
-    font-size: 1.1rem;
-    font-weight: 700;
-    background: var(--gold-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin-bottom: 2px;
-}
-.ch-book-page-num {
-    display: block;
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    font-weight: 500;
+.ch-option-card:hover {
+  border-color: #f59e0b !important;
+  background-color: #fffbeb !important;
 }
 
-/* THE BOOK */
-.ch-book {
-    position: relative;
-    width: 100%;
-    max-width: 1200px;
-    height: 820px;
-    background: #1c0f06;
-    border: 16px solid #2a1506;
-    border-radius: 28px;
-    box-shadow:
-        0 50px 100px -20px rgba(0, 0, 0, 0.85),
-        0 0 0 1px rgba(245, 158, 11, 0.15),
-        inset 0 1px 0 rgba(255, 255, 255, 0.06);
-    overflow: hidden;
-    transition: opacity 0.3s ease, transform 0.3s ease;
-}
-.ch-book--flip {
-    opacity: 0.7;
-    transform: scale(0.97) rotateY(-2deg);
-}
-.ch-book__spine {
-    position: absolute;
-    top: 0; bottom: 0;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 28px;
-    background: linear-gradient(90deg, rgba(0,0,0,0.5), rgba(255,255,255,0.06), rgba(0,0,0,0.5));
-    z-index: 15;
-    pointer-events: none;
-}
-.ch-book__stitch {
-    position: absolute;
-    inset: 6px;
-    border: 1.5px dashed rgba(245, 158, 11, 0.25);
-    border-radius: 16px;
-    pointer-events: none;
-    z-index: 20;
-}
-.ch-book__rings {
-    position: absolute;
-    top: 40px; bottom: 40px;
-    left: 50%;
-    transform: translateX(-50%);
-    z-index: 18;
-    pointer-events: none;
-    display: flex;
-    flex-direction: column;
-    justify-content: space-around;
-}
-.ch-book__ring {
-    width: 16px; height: 7px;
-    background: linear-gradient(135deg, #d97706, #fff8ec, #78350f);
-    border-radius: 4px;
-    box-shadow: 0 2px 6px rgba(0,0,0,0.6);
-    margin-left: -5px;
-}
-.ch-book__edge {
-    position: absolute;
-    top: 0; bottom: 0;
-    width: 56px;
-    z-index: 25;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    transition: var(--transition);
-    opacity: 0;
-    font-size: 1.1rem;
-    color: var(--amber);
-}
-.ch-book__edge--left  { left: 0; border-radius: 14px 0 0 14px; }
-.ch-book__edge--right { right: 0; border-radius: 0 14px 14px 0; }
-.ch-book:hover .ch-book__edge { opacity: 1; }
-.ch-book__edge:hover { background: rgba(245, 158, 11, 0.12); }
-
-/* COVER */
-.ch-book__cover {
-    width: 100%; height: 100%;
-    display: flex;
-}
-.ch-book__cover-left, .ch-book__cover-right {
-    flex: 1;
-    position: relative;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 48px 44px;
-}
-.ch-book__cover-left {
-    background: radial-gradient(ellipse at center, #2e1206 0%, #150900 100%);
-    border-right: 1px solid rgba(245, 158, 11, 0.12);
-}
-.ch-book__cover-right {
-    background: radial-gradient(ellipse at center, #1a0e04 0%, #0c0702 100%);
-}
-.ch-book__corner {
-    position: absolute;
-    width: 28px; height: 28px;
-    border: 2px solid rgba(245, 158, 11, 0.5);
-}
-.ch-book__corner--tl { top: 16px; left: 16px; border-right: none; border-bottom: none; }
-.ch-book__corner--bl { bottom: 16px; left: 16px; border-right: none; border-top: none; }
-.ch-book__corner--tr { top: 16px; right: 16px; border-left: none; border-bottom: none; }
-.ch-book__corner--br { bottom: 16px; right: 16px; border-left: none; border-top: none; }
-
-.ch-book__cover-brand { text-align: center; }
-.ch-book__cover-emblem {
-    width: 96px; height: 96px;
-    margin: 0 auto 24px;
-    border-radius: 50%;
-    background: rgba(245, 158, 11, 0.08);
-    border: 2px solid rgba(245, 158, 11, 0.35);
-    display: flex; align-items: center; justify-content: center;
-    color: var(--amber);
-    box-shadow: 0 0 40px rgba(245, 158, 11, 0.15);
-}
-.ch-book__cover-emblem svg { width: 44px; height: 44px; }
-.ch-book__cover-name {
-    font-family: var(--font-serif);
-    font-size: 3.2rem;
-    font-weight: 900;
-    background: var(--gold-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    margin: 0 0 8px;
-    line-height: 1;
-}
-.ch-book__cover-name span { color: rgba(245, 158, 11, 0.7); -webkit-text-fill-color: initial; }
-.ch-book__cover-divider {
-    width: 120px;
-    height: 2px;
-    background: linear-gradient(90deg, transparent, var(--amber), transparent);
-    margin: 16px auto;
-}
-.ch-book__cover-est {
-    font-size: 0.82rem;
-    color: var(--amber-cream);
-    opacity: 0.6;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    font-weight: 600;
-    margin: 0 0 12px;
-}
-.ch-book__cover-quote {
-    font-family: var(--font-serif);
-    font-style: italic;
-    font-size: 0.95rem;
-    color: var(--text-secondary);
-    margin: 0;
-    line-height: 1.6;
+.ch-option-card.active {
+  box-shadow: 0 0 0 2px #f59e0b;
 }
 
-.ch-book__cover-cta-box {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(245, 158, 11, 0.2);
-    border-radius: var(--radius-lg);
-    padding: 40px 36px;
-    text-align: center;
-    width: 100%;
-    max-width: 380px;
-    box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);
-}
-.ch-book__cover-badge {
-    display: inline-block;
-    background: var(--gold-gradient);
-    color: #1a0a00;
-    border-radius: 100px;
-    padding: 5px 16px;
-    font-size: 0.72rem;
-    font-weight: 800;
-    text-transform: uppercase;
-    letter-spacing: 1.5px;
-    margin-bottom: 20px;
-}
-.ch-book__cover-cta-title {
-    font-family: var(--font-serif);
-    font-size: 2rem;
-    font-weight: 800;
-    color: var(--text-primary);
-    margin: 0 0 12px;
-}
-.ch-book__cover-cta-desc {
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    line-height: 1.6;
-    margin: 0 0 20px;
-}
-.ch-book__cover-cats {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    justify-content: center;
-    margin-bottom: 28px;
-}
-.ch-book__cover-cat-pill {
-    display: inline-block;
-    padding: 5px 14px;
-    border: 1px solid var(--dark-border-hover);
-    border-radius: 100px;
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--amber-light);
+.ch-topping-item {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* BOOK PAGES */
-.ch-book__pages {
-    width: 100%; height: 100%;
-    display: flex;
-}
-.ch-book__page {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    background: linear-gradient(160deg, #fff9f2 0%, #fef6ec 50%, #fff9f2 100%);
-    padding: 32px 36px;
-}
-.ch-book__page--left { border-right: 1px solid #e8d8c0; box-shadow: inset -12px 0 20px -8px rgba(0,0,0,0.06); }
-.ch-book__page--right { box-shadow: inset 12px 0 20px -8px rgba(0,0,0,0.06); }
-
-.ch-page__header {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    padding-bottom: 16px;
-    margin-bottom: 16px;
-    border-bottom: 2px solid #f0dfc0;
-}
-.ch-page__brand-mini {
-    display: block;
-    font-size: 0.65rem;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    color: #b45309;
-    margin-bottom: 4px;
-}
-.ch-page__cat-title {
-    font-family: var(--font-serif);
-    font-size: 1.2rem;
-    font-weight: 800;
-    color: #1a0e04;
-    margin: 0;
-}
-.ch-page__num-badge {
-    background: linear-gradient(135deg, #fbbf24, #d97706);
-    color: #fff;
-    border-radius: 100px;
-    padding: 4px 12px;
-    font-size: 0.72rem;
-    font-weight: 700;
-    white-space: nowrap;
-    flex-shrink: 0;
+.ch-topping-item:hover {
+  border-color: #f59e0b !important;
 }
 
-.ch-page__items {
-    flex: 1;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-    padding-right: 6px;
-}
-.ch-page__items::-webkit-scrollbar { width: 4px; }
-.ch-page__items::-webkit-scrollbar-track { background: #f5ead8; border-radius: 4px; }
-.ch-page__items::-webkit-scrollbar-thumb { background: #d97706; border-radius: 4px; }
-
-.ch-page__item {
-    display: flex;
-    align-items: center;
-    gap: 14px;
-    padding: 12px;
-    background: rgba(255, 255, 255, 0.7);
-    border-radius: var(--radius-sm);
-    border: 1px solid #f0dfc0;
-    cursor: pointer;
-    transition: var(--transition);
-}
-.ch-page__item:hover {
-    background: #fffbf3;
-    border-color: #d97706;
-    transform: translateY(-2px);
-    box-shadow: 0 4px 16px rgba(180, 83, 9, 0.12);
-}
-.ch-page__item-img {
-    width: 72px; height: 72px;
-    border-radius: 10px;
-    overflow: hidden;
-    flex-shrink: 0;
-    border: 1px solid #f0dfc0;
-}
-.ch-page__item-img img {
-    width: 100%; height: 100%;
-    object-fit: cover;
-    display: block;
-    transition: transform 0.3s;
-}
-.ch-page__item:hover .ch-page__item-img img { transform: scale(1.08); }
-.ch-page__item-info { flex: 1; min-width: 0; }
-.ch-page__item-row {
-    display: flex;
-    align-items: baseline;
-    gap: 8px;
-    margin-bottom: 4px;
-}
-.ch-page__item-name {
-    font-family: var(--font-serif);
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: #1a0e04;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    max-width: 120px;
-}
-.ch-page__dots {
-    flex: 1;
-    border-bottom: 2px dotted #d4b896;
-    height: 1px;
-}
-.ch-page__item-price {
-    font-family: var(--font-serif);
-    font-size: 1.05rem;
-    font-weight: 800;
-    color: #b45309;
-    white-space: nowrap;
-}
-.ch-page__item-price small { font-size: 0.7em; }
-.ch-page__item-desc {
-    font-size: 0.75rem;
-    color: #78563b;
-    margin: 0 0 6px;
-    display: -webkit-box;
-    -webkit-line-clamp: 1;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    line-height: 1.4;
-}
-.ch-page__item-size {
-    display: inline-block;
-    background: #f5ead8;
-    color: #92400e;
-    border-radius: 100px;
-    padding: 2px 8px;
-    font-size: 0.68rem;
-    font-weight: 700;
-}
-.ch-page__empty {
-    flex: 1;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    gap: 8px;
-    color: #c4a882;
-    font-style: italic;
-}
-.ch-page__empty i { font-size: 2rem; opacity: 0.4; }
-
-.ch-page__footer {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding-top: 14px;
-    border-top: 1px solid #f0dfc0;
-    margin-top: 12px;
-}
-.ch-page__footer--right { justify-content: space-between; }
-.ch-page__flip-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    background: none;
-    border: none;
-    color: #b45309;
-    font-family: var(--font-sans);
-    font-size: 0.8rem;
-    font-weight: 700;
-    cursor: pointer;
-    padding: 0;
-    transition: var(--transition);
-}
-.ch-page__flip-btn:hover { color: #d97706; }
-.ch-page__flip-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-.ch-page__footer-num {
-    font-family: var(--font-serif);
-    font-style: italic;
-    font-size: 0.85rem;
-    color: #c4a882;
+/* TIMELINE (UC19) */
+.ch-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  position: relative;
+  padding-left: 28px;
 }
 
-/* Book tabs */
-.ch-book-tabs {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    justify-content: center;
-    margin-top: 24px;
-    max-width: 1200px;
-    width: 100%;
-}
-.ch-book-tab {
-    padding: 8px 16px;
-    border-radius: 100px;
-    border: 1px solid var(--dark-border);
-    background: var(--glass-bg);
-    color: var(--text-secondary);
-    font-size: 0.8rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: var(--transition);
-    white-space: nowrap;
-}
-.ch-book-tab:hover { border-color: rgba(245, 158, 11, 0.4); color: var(--amber-light); }
-.ch-book-tab.active {
-    background: var(--gold-gradient);
-    border-color: transparent;
-    color: #1a0a00;
+.ch-timeline::before {
+  content: "";
+  position: absolute;
+  top: 10px;
+  bottom: 10px;
+  left: 11px;
+  width: 2px;
+  background: #e2e8f0;
 }
 
-/* ============================================================
-   MODAL
-   ============================================================ */
-.ch-modal-overlay {
-    position: fixed;
-    inset: 0;
-    z-index: 200;
-    background: rgba(0, 0, 0, 0.75);
-    backdrop-filter: blur(8px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-}
-.ch-modal {
-    position: relative;
-    width: 100%;
-    max-width: 880px;
-    max-height: 90vh;
-    background: linear-gradient(135deg, #15100b 0%, #1e1409 100%);
-    border: 1px solid rgba(245, 158, 11, 0.25);
-    border-radius: var(--radius-xl);
-    overflow: hidden;
-    display: grid;
-    grid-template-columns: 380px 1fr;
-    box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(245, 158, 11, 0.1);
-    animation: ch-modal-in 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
-}
-@keyframes ch-modal-in {
-    from { opacity: 0; transform: scale(0.88) translateY(20px); }
-    to   { opacity: 1; transform: scale(1) translateY(0); }
+.ch-timeline-step {
+  position: relative;
 }
 
-.ch-modal__close {
-    position: absolute;
-    top: 16px; right: 16px;
-    z-index: 10;
-    width: 36px; height: 36px;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, 0.5);
-    backdrop-filter: blur(8px);
-    border: 1px solid rgba(255,255,255,0.12);
-    color: var(--text-secondary);
-    font-size: 1rem;
-    cursor: pointer;
-    display: flex; align-items: center; justify-content: center;
-    transition: var(--transition);
-    padding: 0;
-}
-.ch-modal__close:hover { background: rgba(245, 158, 11, 0.2); color: var(--amber); border-color: rgba(245, 158, 11, 0.4); }
-
-.ch-modal__img-wrap {
-    position: relative;
-    overflow: hidden;
-    background: #0c0907;
-}
-.ch-modal__img {
-    width: 100%; height: 100%;
-    object-fit: cover;
-    display: block;
-    transition: transform 0.5s ease;
-}
-.ch-modal:hover .ch-modal__img { transform: scale(1.05); }
-.ch-modal__img-overlay {
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(to top, rgba(12,9,7,0.6) 0%, transparent 50%);
-    pointer-events: none;
-}
-.ch-modal__img-badges {
-    position: absolute;
-    bottom: 16px; left: 16px;
-    display: flex; gap: 8px; flex-wrap: wrap;
+.ch-timeline-step .step-dot {
+  position: absolute;
+  left: -28px;
+  top: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #64748b;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  z-index: 2;
+  transition: all 0.3s ease;
 }
 
-.ch-modal__info {
-    padding: 32px;
-    overflow-y: auto;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
-}
-.ch-modal__info::-webkit-scrollbar { width: 4px; }
-.ch-modal__info::-webkit-scrollbar-thumb { background: rgba(245, 158, 11, 0.3); border-radius: 4px; }
-
-.ch-modal__breadcrumb {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    font-weight: 500;
-}
-.ch-modal__breadcrumb i { font-size: 0.7rem; }
-.ch-modal__breadcrumb-sep { font-size: 0.6rem; }
-
-.ch-modal__name {
-    font-family: var(--font-serif);
-    font-size: 2rem;
-    font-weight: 900;
-    color: var(--text-primary);
-    margin: 0;
-    line-height: 1.15;
+.ch-timeline-step.step-active .step-dot {
+  background: #f59e0b;
+  color: #ffffff;
+  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.25);
+  animation: pulse-border 1.8s infinite;
 }
 
-.ch-modal__price-wrap { display: flex; flex-direction: column; gap: 2px; }
-.ch-modal__price-label {
-    font-size: 0.72rem;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    font-weight: 600;
-}
-.ch-modal__price {
-    font-family: var(--font-serif);
-    font-size: 2.4rem;
-    font-weight: 900;
-    background: var(--gold-gradient);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
-    background-clip: text;
-    line-height: 1;
-}
-.ch-modal__price small { font-size: 0.55em; }
-
-.ch-modal__divider {
-    height: 1px;
-    background: linear-gradient(90deg, var(--dark-border), transparent);
+.ch-timeline-step.step-done .step-dot {
+  background: #10b981;
+  color: #ffffff;
 }
 
-.ch-modal__section-title {
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: var(--amber-light);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin: 0 0 10px;
-}
-.ch-modal__desc {
-    font-size: 0.92rem;
-    color: var(--text-secondary);
-    line-height: 1.7;
-    margin: 0;
+.ch-badge-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
 }
 
-.ch-modal__barista-tip {
-    background: rgba(245, 158, 11, 0.06);
-    border: 1px solid rgba(245, 158, 11, 0.2);
-    border-radius: var(--radius-md);
-    padding: 16px;
-}
-.ch-modal__tip-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    font-size: 0.82rem;
-    font-weight: 700;
-    color: var(--amber-light);
-    margin-bottom: 8px;
-}
-.ch-modal__tip-header i { color: var(--amber); }
-.ch-modal__tip-body {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-    line-height: 1.55;
-    margin: 0;
+/* AI CHAT BOX (UC08) */
+.ch-ai-chat-box {
+  width: 100%;
+  max-width: 480px;
+  height: 82vh;
+  border-radius: 24px;
+  box-shadow: 0 20px 50px rgba(15, 23, 42, 0.2);
 }
 
-.ch-modal__meta-row {
-    display: flex;
-    gap: 16px;
-    flex-wrap: wrap;
-    margin-top: auto;
-    padding-top: 16px;
-    border-top: 1px solid var(--dark-border);
-}
-.ch-modal__meta-item {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: 0.78rem;
-    font-weight: 600;
-    color: var(--text-muted);
-}
-.ch-modal__meta-item i { color: var(--amber); font-size: 0.8rem; }
-
-/* Modal Transition */
-.ch-modal-fade-enter-active { animation: ch-modal-overlay-in 0.3s ease; }
-.ch-modal-fade-leave-active { animation: ch-modal-overlay-out 0.25s ease; }
-@keyframes ch-modal-overlay-in { from { opacity: 0; } to { opacity: 1; } }
-@keyframes ch-modal-overlay-out { from { opacity: 1; } to { opacity: 0; } }
-
-/* ============================================================
-   FOOTER
-   ============================================================ */
-.ch-footer {
-    position: relative;
-    z-index: 1;
-    border-top: 1px solid var(--dark-border);
-    background: rgba(12, 9, 7, 0.7);
-    backdrop-filter: blur(12px);
-    padding: 24px 32px;
-    margin-top: auto;
-}
-.ch-footer__inner {
-    max-width: 1280px;
-    margin: 0 auto;
-    display: flex;
-    align-items: center;
-    gap: 24px;
-    flex-wrap: wrap;
-    justify-content: space-between;
-}
-.ch-footer__brand {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    font-family: var(--font-serif);
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--amber-light);
-}
-.ch-footer__info {
-    display: flex;
-    gap: 20px;
-    flex-wrap: wrap;
-}
-.ch-footer__info span {
-    display: flex;
-    align-items: center;
-    gap: 7px;
-    font-size: 0.82rem;
-    color: var(--text-muted);
-    font-weight: 500;
-}
-.ch-footer__info i { color: var(--amber); font-size: 0.75rem; }
-.ch-footer__copy { font-size: 0.75rem; color: var(--text-muted); }
-
-/* ============================================================
-   RESPONSIVE
-   ============================================================ */
-@media (max-width: 1024px) {
-    .ch-hero {
-        grid-template-columns: 1fr;
-        padding: 60px 24px 40px;
-        min-height: auto;
-        gap: 40px;
-        text-align: center;
-    }
-    .ch-hero__visual { display: none; }
-    .ch-hero__sub { margin: 0 auto 36px; }
-    .ch-hero__stats { justify-content: center; }
-    .ch-hero__cta { margin: 0 auto; }
-    .ch-book { height: auto; min-height: 700px; }
-    .ch-book__pages { flex-direction: column; }
-    .ch-book__page { padding: 24px; }
-    .ch-modal { grid-template-columns: 1fr; max-height: 95vh; }
-    .ch-modal__img-wrap { height: 260px; }
+.bg-gradient-sunrise {
+  background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%);
 }
 
-@media (max-width: 768px) {
-    .ch-navbar__inner { gap: 12px; }
-    .ch-search { max-width: 200px; }
-    .ch-badge-info { display: none; }
-    .ch-hero__title { font-size: 2.4rem; }
-    .ch-filter { padding: 12px 16px; top: 60px; }
-    .ch-grid-section { padding: 32px 16px 60px; }
-    .ch-grid { grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 16px; }
-    .ch-book-section { padding: 24px 12px 60px; }
-    .ch-book { border-width: 8px; }
-    .ch-footer__inner { flex-direction: column; text-align: center; }
-    .ch-footer__info { justify-content: center; }
+.bg-gradient-amber-btn {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
 }
 
-@media (max-width: 480px) {
-    .ch-grid { grid-template-columns: 1fr; }
-    .ch-hero__stats { gap: 20px; }
-    .ch-modal__info { padding: 20px; }
+.bg-slate-light {
+  background-color: #fcfbf9 !important;
+}
+
+.ai-avatar-pulse {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.22);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.05rem;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+}
+
+.ch-chat-bubble {
+  max-width: 85%;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+.bubble-user {
+  border-bottom-right-radius: 4px !important;
+}
+
+.bubble-ai {
+  border-bottom-left-radius: 4px !important;
+}
+
+.whitespace-pre-line {
+  white-space: pre-line;
 }
 </style>

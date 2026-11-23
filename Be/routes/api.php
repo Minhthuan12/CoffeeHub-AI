@@ -48,6 +48,7 @@ Route::get('/ban/public', [BanController::class, 'getBanTrangThai']);
 // Quy trình Pay-First & Đặt món QR tại bàn
 Route::post('/orders/qr-create', [OrderApiController::class, 'createQrOrder']);
 Route::get('/orders/{id}/status', [OrderApiController::class, 'getOrderStatus']);
+Route::post('/voucher/check', [VoucherController::class, 'kiemTraVoucherPublic']);
 Route::get('/pos/orders/pending', [OrderApiController::class, 'getPendingQrOrders']);
 Route::post('/pos/orders/{id}/approve', [OrderApiController::class, 'approveOrderPayment']);
 

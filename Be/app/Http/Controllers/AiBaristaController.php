@@ -58,11 +58,11 @@ class AiBaristaController extends Controller
     public function chat(Request $request)
     {
         $request->validate([
-            'session_id' => 'required',
+            'session_id' => 'nullable',
             'message'    => 'required|string|max:1000',
         ]);
 
-        $session = AiChatSession::find($request->session_id);
+        $session = $request->session_id ? AiChatSession::find($request->session_id) : null;
         if (!$session) {
             $session = AiChatSession::create([
                 'table_id'   => $request->table_id ?? null,

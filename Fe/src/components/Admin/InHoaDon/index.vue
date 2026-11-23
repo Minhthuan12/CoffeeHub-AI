@@ -75,7 +75,12 @@
                 <tbody>
                     <template v-for="(value, index) in thong_tin_chi_tiet_hoa_don" :key="index">
                         <tr>
-                            <td class="product-name">{{ value.ten_san_pham }}</td>
+                            <td class="product-name">
+                                <div>{{ value.ten_san_pham }}</div>
+                                <div v-if="value.tuy_chon" style="font-size: 11px; font-weight: normal; color: #555; font-style: italic; white-space: normal; word-break: break-word;">
+                                    {{ formatTuyChon(value.tuy_chon) }}
+                                </div>
+                            </td>
                             <td class="text-center">{{ value.so_luong}}</td>
                             <td class="text-right">{{ formatVND(value.don_gia) }}</td>
                             <td class="text-right">{{ formatVND(value.so_luong * value.don_gia) }}</td>
@@ -121,7 +126,7 @@
 
                 <!-- QR Code Section -->
                 <div class="qr-container">
-                    <img :src="`https://img.vietqr.io/image/MB-0862296097-qr_only.png?amount=${hoa_don?.tong_tien}&addInfo=${hoa_don?.ma_hoa_don}`" alt="QR Code"
+                    <img :src="`https://img.vietqr.io/image/MB-06468111-qr_only.png?amount=${hoa_don?.tong_tien}&addInfo=${hoa_don?.ma_hoa_don}&accountName=VO%20MINH%20THUAN`" alt="QR Code"
                         class="qr-code" />
                     <div class="qr-text">Quét để thanh toán / Phản hồi</div>
                 </div>
@@ -154,7 +159,7 @@
 
 <script>
 import axios from 'axios';
-
+import { formatTuyChonText } from '../../../config/tuyChon.js';
 
 export default {
     data() {
@@ -171,6 +176,9 @@ export default {
         this.layDuLieu();
     },
     methods: {
+        formatTuyChon(tc) {
+            return formatTuyChonText(tc);
+        },
         layDuLieu() {
             this.id_hoa_don = this.$route.params.id;
             axios

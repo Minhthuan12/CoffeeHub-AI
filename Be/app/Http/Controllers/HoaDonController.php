@@ -226,7 +226,7 @@ class HoaDonController extends Controller
             ->where('hoa_dons.id', $id_hoa_don)
             ->first();
         $thongTinChiTietHoaDon = ChiTietHoaDon::join('san_phams', 'chi_tiet_hoa_dons.id_san_pham', 'san_phams.id')
-            ->select('san_phams.ten_san_pham', 'chi_tiet_hoa_dons.so_luong', 'chi_tiet_hoa_dons.don_gia')
+            ->select('san_phams.ten_san_pham', 'chi_tiet_hoa_dons.so_luong', 'chi_tiet_hoa_dons.don_gia', 'chi_tiet_hoa_dons.tuy_chon', 'chi_tiet_hoa_dons.ghi_chu')
             ->where('chi_tiet_hoa_dons.id_hoa_don', $id_hoa_don)
             ->get();
         return response()->json([
@@ -247,6 +247,12 @@ class HoaDonController extends Controller
                     'tinh_trang' => 1,
                     'phuong_thuc_thanh_toan' => $request->phuong_thuc_thanh_toan
                 ]);
+
+                // Pay-First: Chuyển các món chưa duyệt (0) sang quầy Barista pha chế (1)
+                ChiTietHoaDon::where('id_hoa_don', $hoaDon->id)
+                    ->where('tinh_trang', 0)
+                    ->update(['tinh_trang' => 1]);
+
                 $khachHang = KhachHang::find($hoaDon->id_khach_hang);
 
                 if ($khachHang && $khachHang->email) {
@@ -320,10 +326,10 @@ class HoaDonController extends Controller
                 'phuong_thuc_thanh_toan' => $phuongThuc
             ]);
 
-            // Cập nhật tất cả các món trong hóa đơn thành đã hoàn thành (2)
+            // Pay-First: Chuyển các món chưa duyệt (0) sang quầy Barista pha chế (1), không ép sang đã xong (2)
             ChiTietHoaDon::where('id_hoa_don', $hoaDon->id)
-                ->where('tinh_trang', '<', 2)
-                ->update(['tinh_trang' => 2]);
+                ->where('tinh_trang', 0)
+                ->update(['tinh_trang' => 1]);
 
             // Gửi email hóa đơn cho khách hàng nếu có email
             $khachHang = KhachHang::find($hoaDon->id_khach_hang);
