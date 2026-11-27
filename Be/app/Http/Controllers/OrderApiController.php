@@ -8,8 +8,10 @@ use App\Models\Ban;
 use App\Models\SanPham;
 use App\Models\KhachHang;
 use App\Models\Voucher;
+use App\Models\PhienCa;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 class OrderApiController extends Controller
@@ -79,6 +81,7 @@ class OrderApiController extends Controller
         $phuongThucStr = strtoupper($request->input('phuong_thuc') ?? $request->input('payment_method') ?? 'VIETQR');
         $isCash = in_array($phuongThucStr, ['TIEN_MAT', 'CASH', '1']);
         $phuongThuc = $isCash ? 1 : 2;
+        $yeuCauTienMat = $isCash ? 1 : 0;
 
         DB::beginTransaction();
         try {
@@ -94,6 +97,7 @@ class OrderApiController extends Controller
                     'tien_truoc_giam'        => 0,
                     'so_tien_giam'           => 0,
                     'phuong_thuc_thanh_toan' => $phuongThuc,
+                    'yeu_cau_tien_mat'       => $yeuCauTienMat,
                     'tinh_trang'             => 0, // 0: Chờ xác nhận Pay-First
                     'id_ban'                 => $id_ban,
                     'id_khach_hang'          => $id_khach_hang,
@@ -105,7 +109,8 @@ class OrderApiController extends Controller
                 ]);
             } else {
                 $hoaDon->update([
-                    'phuong_thuc_thanh_toan' => $phuongThuc
+                    'phuong_thuc_thanh_toan' => $phuongThuc,
+                    'yeu_cau_tien_mat'       => $yeuCauTienMat,
                 ]);
             }
 
@@ -365,15 +370,17 @@ class OrderApiController extends Controller
     public function getPendingQrOrders()
     {
         $orders = HoaDon::join('bans', 'hoa_dons.id_ban', '=', 'bans.id')
-            ->join('khach_hangs', 'hoa_dons.id_khach_hang', '=', 'khach_hangs.id')
+            ->leftJoin('khach_hangs', 'hoa_dons.id_khach_hang', '=', 'khach_hangs.id')
             ->where('hoa_dons.tinh_trang', 0)
             ->select(
                 'hoa_dons.id',
+                'hoa_dons.id_ban',
                 'hoa_dons.ma_hoa_don',
                 'hoa_dons.tong_tien',
                 'hoa_dons.so_tien_giam',
                 'hoa_dons.tien_truoc_giam',
                 'hoa_dons.phuong_thuc_thanh_toan',
+                'hoa_dons.yeu_cau_tien_mat',
                 'hoa_dons.created_at',
                 'bans.ten_ban',
                 'khach_hangs.ho_va_ten as ten_khach_hang'
@@ -393,6 +400,11 @@ class OrderApiController extends Controller
                     'chi_tiet_hoa_dons.tinh_trang'
                 )
                 ->get();
+
+            // Kiểm tra trạng thái khớp VietQR qua tài khoản ngân hàng (UC16)
+            $order->is_vietqr_paid = \App\Models\GiaoDich::where('id_hoa_don', $order->id)
+                ->where('creditAmount', '>=', $order->tong_tien)
+                ->exists();
         }
 
         return response()->json([
@@ -414,7 +426,7 @@ class OrderApiController extends Controller
             ], 404);
         }
 
-        $phuongThuc = $request->input('payment_method', 2);
+        $phuongThuc = $request->input('payment_method', $hoaDon->phuong_thuc_thanh_toan ?? 2);
         if ($phuongThuc === 'VIETQR' || $phuongThuc === 'CHUYEN_KHOAN') {
             $phuongThuc = 2;
         } elseif ($phuongThuc === 'TIEN_MAT' || $phuongThuc === 'CASH') {
@@ -422,9 +434,15 @@ class OrderApiController extends Controller
         }
 
         // Cập nhật hóa đơn
+        $user = Auth::guard('sanctum')->user();
+        $activeShift = $user ? PhienCa::where('id_nhan_vien', $user->id)->where('trang_thai', PhienCa::TRANG_THAI_DANG_MO)->latest()->first() : null;
+        $idPhienCa = $hoaDon->id_phien_ca ?: ($activeShift ? $activeShift->id : null);
+
         $hoaDon->update([
             'phuong_thuc_thanh_toan' => $phuongThuc,
-            'tinh_trang'             => 1 // Đã thanh toán (Pay-First)
+            'yeu_cau_tien_mat'       => 0, // Đã hoàn tất thu tiền
+            'tinh_trang'             => 1, // Đã thanh toán (Pay-First)
+            'id_phien_ca'            => $idPhienCa,
         ]);
 
         // Chuyển toàn bộ món từ 0 (chưa gửi) sang 1 (chờ pha chế trên KDS)
@@ -437,6 +455,35 @@ class OrderApiController extends Controller
             'message'    => 'Duyệt thanh toán Pay-First thành công! Đơn hàng đã được chuyển ngay tới quầy pha chế KDS.',
             'order_id'   => $hoaDon->id,
             'ma_hoa_don' => $hoaDon->ma_hoa_don
+        ]);
+    }
+
+    /**
+     * Thu ngân từ chối đơn hàng QR kèm lý do (UC26/UC27)
+     */
+    public function rejectOrder(Request $request, $id)
+    {
+        $hoaDon = HoaDon::find($id);
+        if (!$hoaDon) {
+            return response()->json([
+                'status'  => 0,
+                'message' => 'Hóa đơn không tồn tại!'
+            ], 404);
+        }
+
+        $lyDo = trim($request->input('ly_do') ?? $request->input('reason') ?? 'Thu ngân từ chối đơn phục vụ');
+
+        $hoaDon->update([
+            'ly_do_huy'  => $lyDo,
+            'tinh_trang' => 2 // 2: Đã hủy / từ chối
+        ]);
+
+        ChiTietHoaDon::where('id_hoa_don', $hoaDon->id)->delete();
+        $hoaDon->delete();
+
+        return response()->json([
+            'status'  => 1,
+            'message' => 'Đã từ chối đơn hàng #' . $hoaDon->ma_hoa_don . ' thành công!'
         ]);
     }
 

@@ -73,6 +73,18 @@ const routes = [
     beforeEnter: checkLogin
   },
   {
+    path: "/admin/phien-ca",
+    alias: ["/admin/giao-ca", "/admin/lich-su-ca"],
+    component: () => import("../components/Admin/PhienCa/index.vue"),
+    beforeEnter: checkLogin
+  },
+  {
+    path: "/admin/phien-ca/z-report/:id",
+    component: () => import("../components/Admin/PhienCa/ZReport/index.vue"),
+    meta: { layout: 'blank' },
+    props: true
+  },
+  {
     path: "/admin/chuc-vu",
     component: () => import("../components/Admin/ChucVu/index.vue"),
     beforeEnter: checkLogin

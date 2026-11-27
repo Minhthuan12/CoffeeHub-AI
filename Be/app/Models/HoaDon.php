@@ -24,7 +24,14 @@ class HoaDon extends Model
         'id_ban',
         'id_khach_hang',
         'id_phan_cong_ca_lam',
+        'id_phien_ca',
         'id_voucher',
-
+        'yeu_cau_tien_mat',
+        'ly_do_huy',
     ];
+
+    public function phienCa()
+    {
+        return $this->belongsTo(PhienCa::class, 'id_phien_ca');
+    }
 }

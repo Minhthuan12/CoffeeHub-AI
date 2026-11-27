@@ -112,6 +112,7 @@
           <div class="sidebar-submenu">
             <router-link class="sidebar-submenu-link" to="/admin/ca-lam-viec" @click="closeOnMobile">Ca Làm Việc</router-link>
             <router-link class="sidebar-submenu-link" to="/admin/phan-cong-ca-lam" @click="closeOnMobile">Phân Công Ca Làm</router-link>
+            <router-link class="sidebar-submenu-link" to="/admin/phien-ca" @click="closeOnMobile">Phiên Ca & Z-Report</router-link>
           </div>
         </div>
 
@@ -136,8 +137,9 @@
             <i class="nav-chevron fa-solid fa-chevron-right"></i>
           </button>
           <div class="sidebar-submenu">
-            <router-link class="sidebar-submenu-link" to="/admin/ban-hang" @click="closeOnMobile">Thu Ngân</router-link>
+            <router-link class="sidebar-submenu-link" to="/admin/ban-hang" @click="closeOnMobile">Thu Ngân (POS)</router-link>
             <router-link class="sidebar-submenu-link" to="/admin/bep-che-bien" @click="closeOnMobile">Bếp Chế Biến</router-link>
+            <router-link class="sidebar-submenu-link" to="/admin/phien-ca" @click="closeOnMobile">Giao Ca & Kết Tiền</router-link>
           </div>
         </div>
 
@@ -331,7 +333,7 @@ export default {
         this.openMenu = 'ban';
       } else if (['/admin/san-pham', '/admin/cong-thuc-mon', '/admin/danh-muc', '/admin/nguyen-lieu'].some(p => path.startsWith(p))) {
         this.openMenu = 'sanpham';
-      } else if (['/admin/ca-lam-viec', '/admin/phan-cong-ca-lam'].some(p => path.startsWith(p))) {
+      } else if (['/admin/ca-lam-viec', '/admin/phan-cong-ca-lam', '/admin/phien-ca'].some(p => path.startsWith(p))) {
         this.openMenu = 'calam';
       } else if (['/admin/ban-hang', '/admin/bep-che-bien'].some(p => path.startsWith(p))) {
         this.openMenu = 'banhang';

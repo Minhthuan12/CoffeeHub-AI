@@ -23,6 +23,7 @@ use App\Http\Controllers\PhieuNhapKhoController;
 use App\Http\Controllers\ChiTietPhieuNhapController;
 use App\Http\Controllers\AiBaristaController;
 use App\Http\Controllers\ThongKeController;
+use App\Http\Controllers\PhienCaController;
 
 Route::get('/user', function (Request $request) {
     return $request->user();
@@ -51,6 +52,7 @@ Route::get('/orders/{id}/status', [OrderApiController::class, 'getOrderStatus'])
 Route::post('/voucher/check', [VoucherController::class, 'kiemTraVoucherPublic']);
 Route::get('/pos/orders/pending', [OrderApiController::class, 'getPendingQrOrders']);
 Route::post('/pos/orders/{id}/approve', [OrderApiController::class, 'approveOrderPayment']);
+Route::post('/pos/orders/{id}/reject', [OrderApiController::class, 'rejectOrder']);
 
 // Quầy Barista (KDS Realtime) & Kho Định lượng (BOM)
 Route::get('/kds/queue', [OrderApiController::class, 'getKdsQueue']);
@@ -261,5 +263,15 @@ Route::prefix('admin')->group(function () {
         Route::get('/kpi-dashboard', [ThongKeController::class, 'thongKeKpiDashboard'])->middleware('checkLogin:127');
         Route::post('/nguyen-lieu-da-xuat', [ThongKeController::class, 'nguyenLieuDaXuat'])->middleware('checkLogin:101');
         Route::post('/chi-tiet-xuat-kho-nguyen-lieu', [ThongKeController::class, 'chiTietXuatKhoNguyenLieu'])->middleware('checkLogin:101');
+    });
+
+    // Quản lý Phiên Ca & Giao Ca (UC30)
+    Route::prefix('phien-ca')->group(function () {
+        Route::get('/ca-hien-tai', [PhienCaController::class, 'kiemTraCaHienTai'])->middleware('checkLogin');
+        Route::post('/mo-ca', [PhienCaController::class, 'moCa'])->middleware('checkLogin');
+        Route::get('/du-lieu-chot-ca/{id?}', [PhienCaController::class, 'duLieuChotCa'])->middleware('checkLogin');
+        Route::post('/chot-ca', [PhienCaController::class, 'chotCa'])->middleware('checkLogin');
+        Route::get('/z-report/{id}', [PhienCaController::class, 'zReport'])->middleware('checkLogin');
+        Route::get('/lich-su', [PhienCaController::class, 'lichSu'])->middleware('checkLogin');
     });
 });

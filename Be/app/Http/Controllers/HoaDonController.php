@@ -10,10 +10,12 @@ use App\Models\SanPham;
 use App\Http\Requests\ThemMoiHoaDonRequest;
 use App\Http\Requests\UpdateHoaDonRequest;
 use App\Models\Voucher;
+use App\Models\PhienCa;
 use App\Jobs\sendMailJob;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Auth;
 
 class HoaDonController extends Controller
 {
@@ -121,6 +123,10 @@ class HoaDonController extends Controller
                     'message' => 'Bàn này đang có người sử dụng!'
                 ]);
             }
+            $user = Auth::guard('sanctum')->user();
+            $activeShift = $user ? PhienCa::where('id_nhan_vien', $user->id)->where('trang_thai', PhienCa::TRANG_THAI_DANG_MO)->latest()->first() : null;
+            $idPhienCa = $activeShift ? $activeShift->id : null;
+
             $hoaDon = HoaDon::create([
                 'ma_hoa_don' => \Illuminate\Support\Str::uuid(),
                 'tong_tien' => 0,
@@ -131,6 +137,7 @@ class HoaDonController extends Controller
                 'id_ban' => $id_ban,
                 'id_khach_hang' => 1,
                 'id_phan_cong_ca_lam' => 1,
+                'id_phien_ca' => $idPhienCa,
                 'id_voucher' => null,
             ]);
             $hoaDon->update([
@@ -243,9 +250,17 @@ class HoaDonController extends Controller
         $hoaDon = HoaDon::find($request->id_hoa_don);
         if ($hoaDon) {
             if ($request->phuong_thuc_thanh_toan == 1) {
+                $idPhienCa = $hoaDon->id_phien_ca;
+                if (!$idPhienCa) {
+                    $user = Auth::guard('sanctum')->user();
+                    $activeShift = $user ? PhienCa::where('id_nhan_vien', $user->id)->where('trang_thai', PhienCa::TRANG_THAI_DANG_MO)->latest()->first() : null;
+                    $idPhienCa = $activeShift ? $activeShift->id : null;
+                }
+
                 $hoaDon->update([
                     'tinh_trang' => 1,
-                    'phuong_thuc_thanh_toan' => $request->phuong_thuc_thanh_toan
+                    'phuong_thuc_thanh_toan' => $request->phuong_thuc_thanh_toan,
+                    'id_phien_ca' => $idPhienCa,
                 ]);
 
                 // Pay-First: Chuyển các món chưa duyệt (0) sang quầy Barista pha chế (1)
@@ -319,11 +334,19 @@ class HoaDonController extends Controller
             $so_tien_giam = $hoaDon->so_tien_giam ?? 0;
             $tong_tien = max(0, $tong_tien_mon - $so_tien_giam);
 
+            $idPhienCa = $hoaDon->id_phien_ca;
+            if (!$idPhienCa) {
+                $user = Auth::guard('sanctum')->user();
+                $activeShift = $user ? PhienCa::where('id_nhan_vien', $user->id)->where('trang_thai', PhienCa::TRANG_THAI_DANG_MO)->latest()->first() : null;
+                $idPhienCa = $activeShift ? $activeShift->id : null;
+            }
+
             $hoaDon->update([
                 'tien_truoc_giam'        => $tong_tien_mon,
                 'tong_tien'              => $tong_tien,
                 'tinh_trang'             => 1,
-                'phuong_thuc_thanh_toan' => $phuongThuc
+                'phuong_thuc_thanh_toan' => $phuongThuc,
+                'id_phien_ca'            => $idPhienCa,
             ]);
 
             // Pay-First: Chuyển các món chưa duyệt (0) sang quầy Barista pha chế (1), không ép sang đã xong (2)
